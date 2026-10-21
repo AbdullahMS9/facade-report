@@ -7,10 +7,15 @@ Pre-MVP. See `CLAUDE.md` for scope, domain rules and conventions.
 
 ## Setup
 
+Needs Node 20.9+ (npm 10.9+) and Docker.
+
 ```bash
-cp .env.example .env.local   # fill in values; never commit .env.local
-npm install                  # needs npm >= 10.9
-npm run dev
+npm install
+npm run db:start             # local Supabase; prints URL and local keys
+cp .env.example .env.local   # fill in values from `npx supabase status`
+npm run dev                  # http://localhost:3000
 ```
 
-Checks: `npm run typecheck`, `npm run lint`, `npm test`.
+Sign-in codes are emailed to the local Mailpit inbox at http://127.0.0.1:54324.
+
+Checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:db`.

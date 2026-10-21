@@ -309,15 +309,30 @@ Photos go in a **private** storage bucket and are served with short-lived signed
 
 ### Commands
 ```
-npm run dev         # local dev server
-npm run typecheck   # tsc --noEmit
+npm run dev         # local dev server (http://localhost:3000)
+npm run typecheck   # next typegen + tsc --noEmit
 npm run lint        # eslint
-npm test            # vitest run (once)
-npm run test:watch  # vitest in watch mode
+npm test            # unit tests (no database needed)
+npm run test:db     # RLS + auth tests against local Supabase
+npm run db:start    # start local Supabase in Docker (Studio :54323, Mailpit :54324)
+npm run db:stop
+npm run db:reset    # re-apply all migrations from scratch
+npm run db:types    # regenerate src/types/database.ts after a migration
 npm run build       # production build
 ```
-Requires Node >= 20.9 (Node 22 LTS recommended). npm 10.8.x crashes on
-install (`reading 'edgesOut'`); use npm >= 10.9.
+Node >= 20.9 with npm >= 10.9 (dev machine: Node 24 via nvm). npm 10.8.x crashes on
+install (`reading 'edgesOut'`). Local sign-in emails land in Mailpit, not real inboxes.
+`.env.local` holds the local demo keys printed by `npx supabase status`.
+
+### Auth and tenancy (built in step 3)
+- Sign-in is email + 6-digit code (no magic links: links open outside the installed PWA).
+- `supabase/config.toml` keeps `enable_confirmations = true`; `accept_invitation` relies on
+  confirmed emails. **Turn "Confirm email" on in the hosted project too**, and set the same
+  email templates (`supabase/templates/`).
+- Firms and memberships are only created through `create_firm` / `accept_invitation`.
+- The service-role client (`src/lib/db/admin.ts`) is used only to send invite emails.
+- Every new table: `firm_id`, RLS enabled in the same migration, policies via
+  `private.is_firm_member` / `private.is_firm_qewi`, and cases added to `tests/db/rls.test.ts`.
 
 ---
 
@@ -359,6 +374,7 @@ install (`reading 'edgesOut'`); use npm >= 10.9.
     UNSAFE, per §103-04(c)(3)(iii)(N).
 - Typical report length and photo count per building.
 - Pricing: per firm per month vs per report.
+- Who sets up a firm account: the QEWI, or an office manager who shouldn't have the `qewi` role?
 
 ---
 
@@ -371,4 +387,7 @@ install (`reading 'edgesOut'`); use npm >= 10.9.
 | 2026-10-21 | No DOB NOW integration in MVP | No public filing API; QEWI files manually |
 | 2026-10-21 | Pin exact versions released at least ~2 weeks earlier (`.npmrc` save-exact) | Avoid brand-new releases; reproducible installs |
 | 2026-10-21 | Next 16.3.8, Vitest 4.1.11, Vite 6.4.4 | Vitest 5 and Vite 7 need Node 20.19+/22; dev machine is on 20.16 |
+| 2026-10-21 | Sign in with emailed 6-digit code, not magic link | Magic links open in the browser, not the installed PWA |
+| 2026-10-21 | Local Supabase in Docker for dev and DB tests; no hosted project until deploy | Free, no real emails, RLS tests run locally |
+| 2026-10-21 | Firm creator gets the `qewi` role | Someone must be able to invite; revisit if office managers set up firms |
 | 2026-10-21 | Accept `braces` audit warning (eslint-config-next dev dependency) | Dev-only lint tooling; only “fix” is downgrading to Next 14 lint config |
