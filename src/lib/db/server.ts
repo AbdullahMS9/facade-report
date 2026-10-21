@@ -1,6 +1,8 @@
+import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { publicEnv } from "@/lib/env";
+import type { Database } from "@/types/database";
 
 // Supabase client for Server Components, Server Functions and Route Handlers.
 // Acts as the signed-in user (anon key + session cookie), so RLS applies.
@@ -8,7 +10,7 @@ export async function createClient() {
   const env = publicEnv();
   const cookieStore = await cookies();
 
-  return createServerClient(
+  return createServerClient<Database>(
     env.NEXT_PUBLIC_SUPABASE_URL,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
@@ -22,8 +24,8 @@ export async function createClient() {
               cookieStore.set(name, value, options);
             }
           } catch {
-            // Server Components cannot set cookies. Session refresh will be
-            // handled by middleware/proxy when auth is added (build step 3).
+            // Server Components can't set cookies; src/proxy.ts refreshes
+            // the session on every request instead.
           }
         },
       },

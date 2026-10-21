@@ -9,6 +9,7 @@ interface LocalStatus {
   API_URL: string;
   ANON_KEY: string;
   SERVICE_ROLE_KEY: string;
+  MAILPIT_URL: string;
 }
 
 // Reads URL and keys from the running local stack, so no secrets live in files.
@@ -31,6 +32,31 @@ export const admin: Db = createClient<Database>(status.API_URL, status.SERVICE_R
 
 export function anonClient(): Db {
   return createClient<Database>(status.API_URL, status.ANON_KEY, noSession);
+}
+
+// Waits for the newest email to `to` in the local Mailpit inbox.
+export async function latestEmail(to: string, subject: string): Promise<{ text: string; html: string }> {
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const query = encodeURIComponent(`to:"${to}" subject:"${subject}"`);
+    const res = await fetch(`${status.MAILPIT_URL}/api/v1/search?query=${query}`);
+    const body = (await res.json()) as { messages: { ID: string }[] };
+    const id = body.messages[0]?.ID;
+    if (id) {
+      const msg = (await (await fetch(`${status.MAILPIT_URL}/api/v1/message/${id}`)).json()) as {
+        Text: string;
+        HTML: string;
+      };
+      return { text: msg.Text, html: msg.HTML };
+    }
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  throw new Error(`No email "${subject}" arrived for ${to}`);
+}
+
+export async function trackUserByEmail(email: string): Promise<void> {
+  const { data } = await admin.auth.admin.listUsers();
+  const user = data.users.find((u) => u.email === email);
+  if (user) createdUserIds.push(user.id);
 }
 
 export interface TestUser {
