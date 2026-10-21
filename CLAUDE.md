@@ -343,7 +343,20 @@ install (`reading 'edgesOut'`); use npm >= 10.9.
 - Most common DOB rejection reasons?
 - Is the DOB NOW upload a single PDF, or separate fields and attachments?
 - Do firms want our report layout, or export into their own Word template?
-- Probe requirement in Cycle 10 (see 3.3).
+- Probe requirement in Cycle 10 (see 3.3). §103-04(c)(2)(v) (PDF dated Feb 3, 2026)
+  reads "starting with the ninth cycle … and, at a minimum, during every subsequent
+  odd-numbered cycle", which literally means Cycle 10 is not required. Coded as
+  `probes.requiredInEvenCycles: true` in `src/lib/rules/config.ts` until a QEWI confirms.
+- Close-up table thresholds in §103-04(c)(2)(iv) did not extract from the PDF; counts
+  1–6 then "one additional" match `floor(L/60)+1`, but confirm the exact boundaries.
+- Rule-edge assumptions in `src/lib/rules/` (confirm with a QEWI):
+  - A filing on the closing Feb 21 of the window is on time (`endIsInclusive`).
+  - "Within 60 days" of final inspection: day 60 is still on time.
+  - Close-up completed Feb 29: the 1-year limit falls on Feb 28.
+  - A street elevation with 0 ft frontage gets 0 required close-ups (checker flags it).
+  - No conditions recorded → building rolls up SAFE (checker requires 3 typical photos).
+  - Any unrepaired prior item requiring repair (not only SWARMP) is carried forward as
+    UNSAFE, per §103-04(c)(3)(iii)(N).
 - Typical report length and photo count per building.
 - Pricing: per firm per month vs per report.
 
