@@ -4,6 +4,7 @@ import { defineConfig, devices } from "@playwright/test";
 // only runs in production builds) and local Supabase (`npm run db:start`).
 export default defineConfig({
   testDir: "tests/e2e",
+  testIgnore: "smoke.spec.ts", // run with playwright.smoke.config.ts
   timeout: 90_000,
   fullyParallel: false,
   use: {

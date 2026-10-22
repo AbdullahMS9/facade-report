@@ -15,7 +15,9 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > src/types/database.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:smoke": "playwright test -c playwright.smoke.config.ts",
+    "db:seed-demo": "node --env-file=.env.local --env-file=.env.seed.local scripts/seed-demo.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
