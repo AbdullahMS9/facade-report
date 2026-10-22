@@ -6,6 +6,8 @@ export interface OutboxMeta {
   createdAt: number; // ms
   attempts: number;
   lastAttemptAt: number | null; // ms
+  // Failed in a way retrying won't fix (e.g. invalid data); only sent when forced.
+  blocked?: boolean;
 }
 
 export interface QueuedObservation extends OutboxMeta {
@@ -29,7 +31,9 @@ export function retryDelayMs(attempts: number): number {
 }
 
 export function isDue(item: OutboxMeta, now: number, force = false): boolean {
-  if (force || item.lastAttemptAt === null) return true;
+  if (force) return true;
+  if (item.blocked) return false;
+  if (item.lastAttemptAt === null) return true;
   return now - item.lastAttemptAt >= retryDelayMs(item.attempts);
 }
 

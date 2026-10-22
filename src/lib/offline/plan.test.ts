@@ -24,6 +24,12 @@ describe("retryDelayMs / isDue", () => {
     expect([0, 1, 2, 3, 10].map(retryDelayMs)).toEqual([0, 15_000, 30_000, 60_000, 600_000]);
   });
 
+  it("skips blocked items unless forced", () => {
+    const item = { id: "a", createdAt: 0, attempts: 1, lastAttemptAt: 0, blocked: true };
+    expect(isDue(item, 10_000_000)).toBe(false);
+    expect(isDue(item, 0, true)).toBe(true);
+  });
+
   it("waits out the delay unless forced", () => {
     const item = { id: "a", createdAt: 0, attempts: 2, lastAttemptAt: 1_000 };
     expect(isDue(item, 30_999)).toBe(false);

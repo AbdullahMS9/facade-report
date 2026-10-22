@@ -25,6 +25,7 @@ type Meta = {
   attempts: number;
   lastAttemptAt: number | null;
   lastError: string | null;
+  blocked: boolean; // won't succeed on retry; shown to the user to fix or discard
 };
 
 export type OutboxObservation = Meta & { id: string; values: ObservationDraft; summary: string };
