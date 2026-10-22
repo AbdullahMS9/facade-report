@@ -352,7 +352,7 @@ npm run typecheck   # next typegen + tsc --noEmit
 npm run lint        # eslint
 npm test            # unit tests (no database needed)
 npm run test:db     # RLS + auth tests against local Supabase
-npm run test:e2e    # Playwright flows at 390px (starts dev server + fake Open Data; needs db:start)
+npm run test:e2e    # Playwright flows at 390px (builds + starts prod server on :3100, fake Open Data; needs db:start)
 npm run db:start    # start local Supabase in Docker (Studio :54323, Mailpit :54324)
 npm run db:stop
 npm run db:reset    # re-apply all migrations from scratch
@@ -394,13 +394,29 @@ containers without the custom email templates, and sign-in emails fall back to d
 - When an input's files are processed with `await`, copy the FileList to an array first:
   resetting the input empties it.
 
+### Offline (built in step 7)
+- New observations and photos are always saved on the phone first (Dexie outbox,
+  `src/lib/offline/`), then synced: on app open, when back online, every 30 s while items
+  wait, and on "Sync now". One code path online and offline.
+- Sync is safe to repeat: ids are made on the phone; `src/lib/offline/serverSync.ts`
+  treats a repeat as done and refuses items from another firm. Photos wait for their
+  observation; the planner re-runs after each pass that sent something.
+- `/field` is a static, browser-only page that works from the phone's data. The service
+  worker (`public/sw.js`, production builds only) caches it and `/_next/static/*`, serves
+  it for any page load when offline, and refreshes it while online.
+- Projects are saved for offline use automatically whenever their overview or
+  new-observation page is opened online. Offline you can add observations and photos
+  only; editing, elevations, drops and deletes need a signal.
+- Sign-out warns about unsynced items, then clears the phone's data.
+
 ### Prior filings (built in step 5)
 - `src/lib/opendata/facades.ts` (pure client + cache policy) and `history.ts` (server, reads
   and writes `building_filings_cache`). Cache is fresh for 24 h; after a failure it waits
   5 min before retrying. The overview panel streams in via `<Suspense>`.
 - `NYC_OPEN_DATA_URL` overrides the API URL; Playwright points it at
   `tests/e2e/fake-opendata.mjs`. If you run `npm run dev` yourself before `test:e2e`, start
-  it with that variable or the prior-filings test will hit the real API.
+  it with that variable or the prior-filings test will hit the real API. (Playwright now
+  runs its own production server on port 3100, so this only matters for manual runs.)
 
 ---
 
@@ -448,6 +464,9 @@ containers without the custom email templates, and sign-in emails fall back to d
 - SWARMP "next five years, but not less than one year": measured from the final inspection
   (same as UNSAFE)? Coded that way in `checkRepairDate`; confirm with a QEWI.
 - 800 × 600 minimum: we accept either orientation (600 × 800 portrait passes). Confirm.
+- Offline on real phones: iOS Safari storage limits and eviction for photo blobs in
+  IndexedDB, and whether field staff need offline drops or edits. Test on a real iPhone
+  added to the home screen.
 - iPhone HEIC photos: browsers usually convert to JPEG on upload; if a raw HEIC arrives,
   non-Safari browsers can't read it and we ask for "Most Compatible". Check on real phones.
 
@@ -473,4 +492,8 @@ containers without the custom email templates, and sign-in emails fall back to d
 | 2026-10-21 | Upload the original photo and a 2000 px display copy | §3.6 says keep originals; copies keep pages and export light |
 | 2026-10-21 | Own minimal EXIF reader instead of `exifr` | Only the date and orientation are needed; no new dependency |
 | 2026-10-21 | Repair limits measured from the QEWI final inspection | §103-04(a) "completion of critical examinations" = final inspection per (c)(2)(viii) |
+| 2026-10-21 | Save new observations/photos on the phone first, then sync (online too) | One code path; nothing lost when the signal drops mid-save |
+| 2026-10-21 | Hand-written service worker, no Serwist | ~100 lines covers field mode; no new dependency |
+| 2026-10-21 | Offline scope: new observations and photos only | Avoids edit conflicts; revisit if field staff need offline drops/edits |
+| 2026-10-21 | Playwright runs against a production build on :3100 | Service workers need a production build; avoids reusing a stale dev server |
 | 2026-10-21 | Accept `braces` audit warning (eslint-config-next dev dependency) | Dev-only lint tooling; only “fix” is downgrading to Next 14 lint config |
