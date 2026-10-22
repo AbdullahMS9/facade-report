@@ -258,8 +258,10 @@ RLS: a user can only read and write rows where `firm_id` matches their membershi
 - `observations` — project_id, elevation_id, closeup_id (nullable), floor, element,
   condition, classification (`safe` | `swarmp` | `unsafe`), cause, notes,
   recommended_repair, repair_by_date
-- `photos` — project_id, observation_id (nullable), kind (`condition` | `elevation` |
-  `inspector` | `probe` | `typical`), storage_path, taken_at, width, height, caption
+- `photos` — project_id, observation_id (nullable; required for `condition`), kind
+  (`condition` | `elevation` | `inspector` | `probe` | `typical`), original_path, display_path,
+  original_type, taken_at, taken_at_source (`exif` | `file`), width, height (original,
+  upright), caption
 - `prior_items` — project_id, description, location_note, repaired (nullable bool: null = not decided),
   notes. Entered by hand (Open Data has no condition-level data).
 - `contractors` — project_id, role (`rigger` | `contractor` | `consultant`), name, license
@@ -268,6 +270,9 @@ Child tables reference parents by `(id, firm_id)` so rows can't link across firm
 Members read/add/edit; only the QEWI deletes or changes a project's status (trigger).
 
 Photos go in a **private** storage bucket and are served with short-lived signed URLs.
+Bucket `photos`, paths `<firm>/<project>/<photo>/original.<ext>` and `display.jpg`
+(longest side ≤ 2000 px, upright JPEG). Storage rules check the firm from the first folder;
+files are never overwritten; only the QEWI deletes.
 
 ---
 
@@ -379,6 +384,16 @@ containers without the custom email templates, and sign-in emails fall back to d
   no rule logic in components. "Today" is New York time (`src/lib/today.ts`).
 - Back links use `BackLink`; deletes use `ConfirmDelete` and are QEWI-only.
 
+### Photos (built in step 6)
+- In the browser, `src/lib/photos/prepare.ts` reads the EXIF capture date
+  (`exif.ts`; no EXIF → file date, flagged), makes the upright display copy, and flags
+  photos under 800 × 600. Upload order: both files, then `recordPhoto` saves the row with
+  paths the server builds. Step 7 can queue these same steps offline.
+- If saving the row fails after upload, the files stay in storage (staff can't delete
+  files). Harmless, but a cleanup job may be worth adding later.
+- When an input's files are processed with `await`, copy the FileList to an array first:
+  resetting the input empties it.
+
 ### Prior filings (built in step 5)
 - `src/lib/opendata/facades.ts` (pure client + cache policy) and `history.ts` (server, reads
   and writes `building_filings_cache`). Cache is fresh for 24 h; after a failure it waits
@@ -430,6 +445,11 @@ containers without the custom email templates, and sign-in emails fall back to d
 - Who sets up a firm account: the QEWI, or an office manager who shouldn't have the `qewi` role?
 - Should a project lock once it is `ready` or `filed`? (Today anyone in the firm can still edit.)
 - Probe waivers (§103-04(c)(2)(v) exceptions 1–3) are not tracked; where should the proof live?
+- SWARMP "next five years, but not less than one year": measured from the final inspection
+  (same as UNSAFE)? Coded that way in `checkRepairDate`; confirm with a QEWI.
+- 800 × 600 minimum: we accept either orientation (600 × 800 portrait passes). Confirm.
+- iPhone HEIC photos: browsers usually convert to JPEG on upload; if a raw HEIC arrives,
+  non-Safari browsers can't read it and we ask for "Most Compatible". Check on real phones.
 
 ---
 
@@ -450,4 +470,7 @@ containers without the custom email templates, and sign-in emails fall back to d
 | 2026-10-21 | Playwright added in step 4 (1.63.0, Chromium only) | Needed to check field screens at 390px end to end |
 | 2026-10-21 | Cache Open Data per building in `building_filings_cache` (RLS), not Next's fetch cache | Survives deploys, shows "last updated", usable offline later |
 | 2026-10-21 | Prior-cycle items entered by hand in step 5 | Open Data has statuses only, no condition-level data |
+| 2026-10-21 | Upload the original photo and a 2000 px display copy | §3.6 says keep originals; copies keep pages and export light |
+| 2026-10-21 | Own minimal EXIF reader instead of `exifr` | Only the date and orientation are needed; no new dependency |
+| 2026-10-21 | Repair limits measured from the QEWI final inspection | §103-04(a) "completion of critical examinations" = final inspection per (c)(2)(viii) |
 | 2026-10-21 | Accept `braces` audit warning (eslint-config-next dev dependency) | Dev-only lint tooling; only “fix” is downgrading to Next 14 lint config |
