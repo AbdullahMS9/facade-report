@@ -23,7 +23,32 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "buildings": {
+            "building_filings_cache": {
+                  Row: {
+                    "building_id": string,"created_at": string,"fetched_at": string | null,"filings": NonNullable<Json>,"firm_id": string,"id": string,"last_attempt_at": string | null,"last_error": string | null,"lookup_key": string,"updated_at": string
+                  }
+                  Insert: {
+                    "building_id": string,"created_at"?: string,"fetched_at"?: string | null,"filings"?: NonNullable<Json>,"firm_id": string,"id"?: string,"last_attempt_at"?: string | null,"last_error"?: string | null,"lookup_key": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "building_id"?: string,"created_at"?: string,"fetched_at"?: string | null,"filings"?: NonNullable<Json>,"firm_id"?: string,"id"?: string,"last_attempt_at"?: string | null,"last_error"?: string | null,"lookup_key"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "building_filings_cache_building_id_firm_id_fkey"
+      columns: ["building_id","firm_id"]
+isOneToOne: false
+      referencedRelation: "buildings"
+      referencedColumns: ["id","firm_id"]
+    },{
+      foreignKeyName: "building_filings_cache_firm_id_fkey"
+      columns: ["firm_id"]
+isOneToOne: false
+      referencedRelation: "firms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"buildings": {
                   Row: {
                     "address": string,"bin": string | null,"block": number | null,"borough": Database["public"]['Enums']["borough"],"co_number": string | null,"created_at": string,"cross_street": string | null,"firm_id": string,"height_ft": number | null,"id": string,"is_cavity_wall": boolean | null,"is_landmark": boolean | null,"lot": number | null,"materials": (string)[],"materials_notes": string | null,"owner_address": string | null,"owner_name": string | null,"owner_phone": string | null,"owner_principal_name": string | null,"owner_principal_title": string | null,"stories": number | null,"updated_at": string,"use": string | null,"year_built": number | null
                   }
@@ -160,6 +185,31 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "firms"
       referencedColumns: ["id"]
+    }
+                  ]
+                },"prior_items": {
+                  Row: {
+                    "created_at": string,"description": string,"firm_id": string,"id": string,"location_note": string | null,"notes": string | null,"project_id": string,"repaired": boolean | null,"updated_at": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"description": string,"firm_id": string,"id"?: string,"location_note"?: string | null,"notes"?: string | null,"project_id": string,"repaired"?: boolean | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"description"?: string,"firm_id"?: string,"id"?: string,"location_note"?: string | null,"notes"?: string | null,"project_id"?: string,"repaired"?: boolean | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "prior_items_firm_id_fkey"
+      columns: ["firm_id"]
+isOneToOne: false
+      referencedRelation: "firms"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "prior_items_project_id_firm_id_fkey"
+      columns: ["project_id","firm_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","firm_id"]
     }
                   ]
                 },"probes": {
