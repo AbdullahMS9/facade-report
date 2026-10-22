@@ -13,8 +13,9 @@ import { FilingPanel } from "./FilingPanel";
 import { ObservationsCard } from "./ObservationsCard";
 import { PriorFilingsPanel, PriorFilingsSkeleton } from "./PriorFilingsPanel";
 import { PriorItemsCard } from "./PriorItemsCard";
-import { loadProject } from "./load";
+import { loadChecks, loadProject } from "./load";
 import { StatusForm } from "./StatusForm";
+import { TopBlockers } from "./TopBlockers";
 
 function Card({ title, editHref, children }: { title: string; editHref?: string; children: ReactNode }) {
   return (
@@ -55,6 +56,7 @@ const date = (v: string | null) => (v ? formatDate(v) : "—");
 export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
   const { id } = await props.params;
   const { supabase, project, building, membership } = await loadProject(id);
+  const { blockers } = await loadChecks(id);
   const { data: elevations } = await listElevations(supabase, project.id);
   const [{ data: priorItems }, { data: observations }, { count: projectPhotoCount }] = await Promise.all([
     supabase.from("prior_items").select("repaired").eq("project_id", project.id),
@@ -85,6 +87,8 @@ export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
         <span>{REPORT_TYPE_LABEL[project.report_type]}</span>
         <StatusBadge status={project.status} />
       </div>
+
+      <TopBlockers projectId={project.id} blockers={blockers} />
 
       <OfflineSnapshot
         snapshot={{

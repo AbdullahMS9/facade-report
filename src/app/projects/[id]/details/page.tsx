@@ -80,7 +80,7 @@ export default async function ProjectDetailsPage(props: PageProps<"/projects/[id
             label="Probe waiver"
             name="probe_waiver"
             defaultValue={project.probe_waiver ?? ""}
-            hint="Only if one of the rule's exceptions applies. Keep the proof with the report."
+            hint="Only if an exception applies: a tie repair campaign, or the first TCO/CO, within 10 years of the filing deadline; or a DOB-accepted alternate method. Keep the proof with the report."
           >
             <option value="">No waiver: probes required where they apply</option>
             {PROBE_WAIVERS.map((w) => (

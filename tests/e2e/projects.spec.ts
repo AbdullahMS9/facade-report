@@ -99,11 +99,11 @@ test("sign in, set up a firm, create a project and edit the building", async ({ 
   await expect(page.getByText("Set by: 60 days after the final inspection.")).toBeVisible();
   await expect(page.getByText("Pat Example (PE 000123)")).toBeVisible();
 
-  // The QEWI can change the status.
+  // "Ready to file" is refused while the checker has blockers.
   await page.getByLabel("Status", { exact: true }).selectOption("ready");
   await page.getByRole("button", { name: "Update status" }).click();
-  await expect(page.getByText("Status updated.")).toBeVisible();
-  await expect(page.getByText("Ready to file").first()).toBeVisible();
+  await expect(page.getByText(/Fix the \d+ checker blockers first/)).toBeVisible();
+  await expect(page.getByText(/^Checker: \d+ blockers/)).toBeVisible();
   await shot(page, "08-overview-full");
 
   // Elevations: a 75 ft street elevation needs 2 drops.

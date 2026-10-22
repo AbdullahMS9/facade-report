@@ -3,7 +3,7 @@ import type { ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "re
 // Extra form controls that match Field in ui.tsx.
 
 const control =
-  "min-h-12 rounded-lg border border-neutral-300 bg-white px-3 text-base text-neutral-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100";
+  "min-h-12 w-full min-w-0 rounded-lg border border-neutral-300 bg-white px-3 text-base text-neutral-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100";
 
 // Labels point at their control by id (not by wrapping it), so the accessible
 // name is just the label, not the label plus the selected option.
@@ -67,7 +67,7 @@ export function YesNoSelect({ label, name, value, hint }: { label: string; name:
 
 export function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <fieldset className="flex flex-col gap-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
+    <fieldset className="flex min-w-0 flex-col gap-4 rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
       <legend className="px-1 text-base font-semibold">{title}</legend>
       {children}
     </fieldset>

@@ -17,9 +17,9 @@ export const newProjectSchema = z.object({
 export const PROBE_WAIVERS = ["tie_repair", "new_building", "alternate_method"] as const;
 // §103-04(c)(2)(v) exceptions 1–3 (CLAUDE.md §3.3).
 export const PROBE_WAIVER_LABEL = {
-  tie_repair: "Tie repair campaign within 10 years of the filing deadline (with proof)",
-  new_building: "First TCO/CO within 10 years of the filing deadline (with evidence of ties)",
-  alternate_method: "DOB-accepted alternate method for tie condition and spacing",
+  tie_repair: "Tie repair within 10 years",
+  new_building: "New building (first CO within 10 years)",
+  alternate_method: "DOB-accepted alternate method",
 } as const;
 
 const probeWaiverField = z.preprocess(

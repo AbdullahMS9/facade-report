@@ -133,7 +133,7 @@ export function runChecks(input: CheckerInput, rules = FISP_RULES): CheckResult[
       "Building identifiers",
       "blocker",
       missing.length
-        ? fail(`Missing: ${missing.join(", ")}.`, "Add them on the building page.")
+        ? fail(`Missing: ${missing.join(", ")}.`, `Add ${missing.length > 1 ? "them" : "it"} on the building page.`)
         : pass("Address, block, lot and BIN are filled in."),
     );
   }
@@ -357,7 +357,10 @@ export function runChecks(input: CheckerInput, rules = FISP_RULES): CheckResult[
       d = fail("The filing window depends on the block number.", "Add the block on the building page.");
     } else if (!p.finalInspectionDate || !p.closeupCompleteDate) {
       const missing = [!p.closeupCompleteDate && "close-up completion", !p.finalInspectionDate && "QEWI final inspection"].filter(Boolean);
-      d = fail(`Missing the ${missing.join(" and ")} date.`, "Add it on the project details page; the deadline depends on it.");
+      d = fail(
+        `Missing the ${missing.join(" and ")} date${missing.length > 1 ? "s" : ""}.`,
+        `Add ${missing.length > 1 ? "them" : "it"} on the project details page; the deadline depends on ${missing.length > 1 ? "them" : "it"}.`,
+      );
     } else {
       const s = filingSummary(
         {
