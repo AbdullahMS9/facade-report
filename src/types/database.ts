@@ -187,6 +187,74 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"observations": {
+                  Row: {
+                    "cause": string | null,"classification": Database["public"]['Enums']["classification"],"closeup_id": string | null,"condition": string,"created_at": string,"element": string,"elevation_id": string | null,"firm_id": string,"floor": string | null,"id": string,"notes": string | null,"project_id": string,"recommended_repair": string | null,"repair_by_date": string | null,"updated_at": string
+                  }
+                  Insert: {
+                    "cause"?: string | null,"classification": Database["public"]['Enums']["classification"],"closeup_id"?: string | null,"condition": string,"created_at"?: string,"element": string,"elevation_id"?: string | null,"firm_id": string,"floor"?: string | null,"id"?: string,"notes"?: string | null,"project_id": string,"recommended_repair"?: string | null,"repair_by_date"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "cause"?: string | null,"classification"?: Database["public"]['Enums']["classification"],"closeup_id"?: string | null,"condition"?: string,"created_at"?: string,"element"?: string,"elevation_id"?: string | null,"firm_id"?: string,"floor"?: string | null,"id"?: string,"notes"?: string | null,"project_id"?: string,"recommended_repair"?: string | null,"repair_by_date"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "observations_closeup_id_elevation_id_fkey"
+      columns: ["closeup_id","elevation_id"]
+isOneToOne: false
+      referencedRelation: "closeups"
+      referencedColumns: ["id","elevation_id"]
+    },{
+      foreignKeyName: "observations_elevation_id_project_id_fkey"
+      columns: ["elevation_id","project_id"]
+isOneToOne: false
+      referencedRelation: "elevations"
+      referencedColumns: ["id","project_id"]
+    },{
+      foreignKeyName: "observations_firm_id_fkey"
+      columns: ["firm_id"]
+isOneToOne: false
+      referencedRelation: "firms"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "observations_project_id_firm_id_fkey"
+      columns: ["project_id","firm_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","firm_id"]
+    }
+                  ]
+                },"photos": {
+                  Row: {
+                    "caption": string | null,"created_at": string,"display_path": string,"firm_id": string,"height": number,"id": string,"kind": Database["public"]['Enums']["photo_kind"],"observation_id": string | null,"original_path": string,"original_type": string,"project_id": string,"taken_at": string | null,"taken_at_source": Database["public"]['Enums']["photo_date_source"] | null,"updated_at": string,"width": number
+                  }
+                  Insert: {
+                    "caption"?: string | null,"created_at"?: string,"display_path": string,"firm_id": string,"height": number,"id"?: string,"kind": Database["public"]['Enums']["photo_kind"],"observation_id"?: string | null,"original_path": string,"original_type": string,"project_id": string,"taken_at"?: string | null,"taken_at_source"?: Database["public"]['Enums']["photo_date_source"] | null,"updated_at"?: string,"width": number
+                  }
+                  Update: {
+                    "caption"?: string | null,"created_at"?: string,"display_path"?: string,"firm_id"?: string,"height"?: number,"id"?: string,"kind"?: Database["public"]['Enums']["photo_kind"],"observation_id"?: string | null,"original_path"?: string,"original_type"?: string,"project_id"?: string,"taken_at"?: string | null,"taken_at_source"?: Database["public"]['Enums']["photo_date_source"] | null,"updated_at"?: string,"width"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "photos_firm_id_fkey"
+      columns: ["firm_id"]
+isOneToOne: false
+      referencedRelation: "firms"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "photos_observation_id_project_id_fkey"
+      columns: ["observation_id","project_id"]
+isOneToOne: false
+      referencedRelation: "observations"
+      referencedColumns: ["id","project_id"]
+    },{
+      foreignKeyName: "photos_project_id_firm_id_fkey"
+      columns: ["project_id","firm_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","firm_id"]
+    }
+                  ]
                 },"prior_items": {
                   Row: {
                     "created_at": string,"description": string,"firm_id": string,"id": string,"location_note": string | null,"notes": string | null,"project_id": string,"repaired": boolean | null,"updated_at": string
@@ -295,7 +363,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "borough": "manhattan"|"bronx"|"brooklyn"|"queens"|"staten_island","closeup_method": "scaffold"|"swing_stage"|"boom_lift"|"rope","license_type": "PE"|"RA","member_role": "qewi"|"staff","project_status": "draft"|"ready"|"filed","report_type": "initial"|"subsequent"|"amended"
+            "borough": "manhattan"|"bronx"|"brooklyn"|"queens"|"staten_island","classification": "safe"|"swarmp"|"unsafe","closeup_method": "scaffold"|"swing_stage"|"boom_lift"|"rope","license_type": "PE"|"RA","member_role": "qewi"|"staff","photo_date_source": "exif"|"file","photo_kind": "condition"|"elevation"|"inspector"|"probe"|"typical","project_status": "draft"|"ready"|"filed","report_type": "initial"|"subsequent"|"amended"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -415,7 +483,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "borough": ["manhattan", "bronx", "brooklyn", "queens", "staten_island"],"closeup_method": ["scaffold", "swing_stage", "boom_lift", "rope"],"license_type": ["PE", "RA"],"member_role": ["qewi", "staff"],"project_status": ["draft", "ready", "filed"],"report_type": ["initial", "subsequent", "amended"]
+            "borough": ["manhattan", "bronx", "brooklyn", "queens", "staten_island"],"classification": ["safe", "swarmp", "unsafe"],"closeup_method": ["scaffold", "swing_stage", "boom_lift", "rope"],"license_type": ["PE", "RA"],"member_role": ["qewi", "staff"],"photo_date_source": ["exif", "file"],"photo_kind": ["condition", "elevation", "inspector", "probe", "typical"],"project_status": ["draft", "ready", "filed"],"report_type": ["initial", "subsequent", "amended"]
           }
         }
 } as const
