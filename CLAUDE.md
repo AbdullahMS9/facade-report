@@ -245,15 +245,16 @@ RLS: a user can only read and write rows where `firm_id` matches their membershi
 - `memberships` — user_id, firm_id, role (`qewi` | `staff`)
 - `inspectors` — firm_id, user_id, name, license_type (`PE` | `RA`), license_number
 - `buildings` — address, borough, block, lot, bin, cross_street, stories, height_ft,
-  year_built, co_number, use, materials, is_cavity_wall, is_landmark,
-  owner_name, owner_address, owner_phone, owner_principal
+  year_built, co_number, use, materials (text[]), materials_notes, is_cavity_wall,
+  is_landmark (both nullable = not answered), owner_name, owner_address, owner_phone,
+  owner_principal_name, owner_principal_title
 - `projects` — building_id, cycle (e.g. 10), report_type (`initial` | `subsequent` |
   `amended`), qewi_id, status (`draft` | `ready` | `filed`), exam_start, exam_end,
-  final_visual_date, closeup_complete_date, unsafe_notified_at
-- `elevations` — project_id, name, faces_street, frontage_ft, setbacks_note
-- `closeups` — elevation_id, location_note, date, method (`scaffold` | `swing_stage` |
+  final_visual_date, closeup_complete_date, unsafe_notified_on
+- `elevations` — project_id, name, faces_street, frontage_ft, setbacks_note, sort_order
+- `closeups` — elevation_id, location_note, inspected_on, method (`scaffold` | `swing_stage` |
   `boom_lift` | `rope`)
-- `probes` — closeup_id, location_note, date, tie_type, tie_spacing, tie_condition
+- `probes` — closeup_id, location_note, probed_on, tie_type, tie_spacing, tie_condition
 - `observations` — project_id, elevation_id, closeup_id (nullable), floor, element,
   condition, classification (`safe` | `swarmp` | `unsafe`), cause, notes,
   recommended_repair, repair_by_date
@@ -261,6 +262,9 @@ RLS: a user can only read and write rows where `firm_id` matches their membershi
   `inspector` | `probe` | `typical`), storage_path, taken_at, width, height, caption
 - `prior_items` — project_id, description, repaired (bool), source (`manual` | `opendata`)
 - `contractors` — project_id, role (`rigger` | `contractor` | `consultant`), name, license
+
+Child tables reference parents by `(id, firm_id)` so rows can't link across firms.
+Members read/add/edit; only the QEWI deletes or changes a project's status (trigger).
 
 Photos go in a **private** storage bucket and are served with short-lived signed URLs.
 
@@ -323,6 +327,8 @@ npm run build       # production build
 Node >= 20.9 with npm >= 10.9 (dev machine: Node 24 via nvm). npm 10.8.x crashes on
 install (`reading 'edgesOut'`). Local sign-in emails land in Mailpit, not real inboxes.
 `.env.local` holds the local demo keys printed by `npx supabase status`.
+After a Mac restart run `npm run db:stop && npm run db:start`: Docker revives the old
+containers without the custom email templates, and sign-in emails fall back to defaults.
 
 ### Auth and tenancy (built in step 3)
 - Sign-in is email + 6-digit code (no magic links: links open outside the installed PWA).

@@ -23,7 +23,76 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "firms": {
+            "buildings": {
+                  Row: {
+                    "address": string,"bin": string | null,"block": number | null,"borough": Database["public"]['Enums']["borough"],"co_number": string | null,"created_at": string,"cross_street": string | null,"firm_id": string,"height_ft": number | null,"id": string,"is_cavity_wall": boolean | null,"is_landmark": boolean | null,"lot": number | null,"materials": (string)[],"materials_notes": string | null,"owner_address": string | null,"owner_name": string | null,"owner_phone": string | null,"owner_principal_name": string | null,"owner_principal_title": string | null,"stories": number | null,"updated_at": string,"use": string | null,"year_built": number | null
+                  }
+                  Insert: {
+                    "address": string,"bin"?: string | null,"block"?: number | null,"borough": Database["public"]['Enums']["borough"],"co_number"?: string | null,"created_at"?: string,"cross_street"?: string | null,"firm_id": string,"height_ft"?: number | null,"id"?: string,"is_cavity_wall"?: boolean | null,"is_landmark"?: boolean | null,"lot"?: number | null,"materials"?: (string)[],"materials_notes"?: string | null,"owner_address"?: string | null,"owner_name"?: string | null,"owner_phone"?: string | null,"owner_principal_name"?: string | null,"owner_principal_title"?: string | null,"stories"?: number | null,"updated_at"?: string,"use"?: string | null,"year_built"?: number | null
+                  }
+                  Update: {
+                    "address"?: string,"bin"?: string | null,"block"?: number | null,"borough"?: Database["public"]['Enums']["borough"],"co_number"?: string | null,"created_at"?: string,"cross_street"?: string | null,"firm_id"?: string,"height_ft"?: number | null,"id"?: string,"is_cavity_wall"?: boolean | null,"is_landmark"?: boolean | null,"lot"?: number | null,"materials"?: (string)[],"materials_notes"?: string | null,"owner_address"?: string | null,"owner_name"?: string | null,"owner_phone"?: string | null,"owner_principal_name"?: string | null,"owner_principal_title"?: string | null,"stories"?: number | null,"updated_at"?: string,"use"?: string | null,"year_built"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "buildings_firm_id_fkey"
+      columns: ["firm_id"]
+isOneToOne: false
+      referencedRelation: "firms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"closeups": {
+                  Row: {
+                    "created_at": string,"elevation_id": string,"firm_id": string,"id": string,"inspected_on": string,"location_note": string,"method": Database["public"]['Enums']["closeup_method"],"updated_at": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"elevation_id": string,"firm_id": string,"id"?: string,"inspected_on": string,"location_note": string,"method": Database["public"]['Enums']["closeup_method"],"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"elevation_id"?: string,"firm_id"?: string,"id"?: string,"inspected_on"?: string,"location_note"?: string,"method"?: Database["public"]['Enums']["closeup_method"],"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "closeups_elevation_id_firm_id_fkey"
+      columns: ["elevation_id","firm_id"]
+isOneToOne: false
+      referencedRelation: "elevations"
+      referencedColumns: ["id","firm_id"]
+    },{
+      foreignKeyName: "closeups_firm_id_fkey"
+      columns: ["firm_id"]
+isOneToOne: false
+      referencedRelation: "firms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"elevations": {
+                  Row: {
+                    "created_at": string,"faces_street": boolean,"firm_id": string,"frontage_ft": number,"id": string,"name": string,"project_id": string,"setbacks_note": string | null,"sort_order": number,"updated_at": string
+                  }
+                  Insert: {
+                    "created_at"?: string,"faces_street": boolean,"firm_id": string,"frontage_ft"?: number,"id"?: string,"name": string,"project_id": string,"setbacks_note"?: string | null,"sort_order"?: number,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"faces_street"?: boolean,"firm_id"?: string,"frontage_ft"?: number,"id"?: string,"name"?: string,"project_id"?: string,"setbacks_note"?: string | null,"sort_order"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "elevations_firm_id_fkey"
+      columns: ["firm_id"]
+isOneToOne: false
+      referencedRelation: "firms"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "elevations_project_id_firm_id_fkey"
+      columns: ["project_id","firm_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id","firm_id"]
+    }
+                  ]
+                },"firms": {
                   Row: {
                     "created_at": string,"id": string,"name": string,"updated_at": string
                   }
@@ -93,6 +162,62 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"probes": {
+                  Row: {
+                    "closeup_id": string,"created_at": string,"firm_id": string,"id": string,"location_note": string,"probed_on": string,"tie_condition": string | null,"tie_spacing": string | null,"tie_type": string | null,"updated_at": string
+                  }
+                  Insert: {
+                    "closeup_id": string,"created_at"?: string,"firm_id": string,"id"?: string,"location_note": string,"probed_on": string,"tie_condition"?: string | null,"tie_spacing"?: string | null,"tie_type"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "closeup_id"?: string,"created_at"?: string,"firm_id"?: string,"id"?: string,"location_note"?: string,"probed_on"?: string,"tie_condition"?: string | null,"tie_spacing"?: string | null,"tie_type"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "probes_closeup_id_firm_id_fkey"
+      columns: ["closeup_id","firm_id"]
+isOneToOne: false
+      referencedRelation: "closeups"
+      referencedColumns: ["id","firm_id"]
+    },{
+      foreignKeyName: "probes_firm_id_fkey"
+      columns: ["firm_id"]
+isOneToOne: false
+      referencedRelation: "firms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"projects": {
+                  Row: {
+                    "building_id": string,"closeup_complete_date": string | null,"created_at": string,"cycle": number,"exam_end": string | null,"exam_start": string | null,"final_visual_date": string | null,"firm_id": string,"id": string,"qewi_id": string | null,"report_type": Database["public"]['Enums']["report_type"],"status": Database["public"]['Enums']["project_status"],"unsafe_notified_on": string | null,"updated_at": string
+                  }
+                  Insert: {
+                    "building_id": string,"closeup_complete_date"?: string | null,"created_at"?: string,"cycle"?: number,"exam_end"?: string | null,"exam_start"?: string | null,"final_visual_date"?: string | null,"firm_id": string,"id"?: string,"qewi_id"?: string | null,"report_type"?: Database["public"]['Enums']["report_type"],"status"?: Database["public"]['Enums']["project_status"],"unsafe_notified_on"?: string | null,"updated_at"?: string
+                  }
+                  Update: {
+                    "building_id"?: string,"closeup_complete_date"?: string | null,"created_at"?: string,"cycle"?: number,"exam_end"?: string | null,"exam_start"?: string | null,"final_visual_date"?: string | null,"firm_id"?: string,"id"?: string,"qewi_id"?: string | null,"report_type"?: Database["public"]['Enums']["report_type"],"status"?: Database["public"]['Enums']["project_status"],"unsafe_notified_on"?: string | null,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "projects_building_id_firm_id_fkey"
+      columns: ["building_id","firm_id"]
+isOneToOne: false
+      referencedRelation: "buildings"
+      referencedColumns: ["id","firm_id"]
+    },{
+      foreignKeyName: "projects_firm_id_fkey"
+      columns: ["firm_id"]
+isOneToOne: false
+      referencedRelation: "firms"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "projects_qewi_id_firm_id_fkey"
+      columns: ["qewi_id","firm_id"]
+isOneToOne: false
+      referencedRelation: "inspectors"
+      referencedColumns: ["id","firm_id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -117,7 +242,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "license_type": "PE"|"RA","member_role": "qewi"|"staff"
+            "borough": "manhattan"|"bronx"|"brooklyn"|"queens"|"staten_island","closeup_method": "scaffold"|"swing_stage"|"boom_lift"|"rope","license_type": "PE"|"RA","member_role": "qewi"|"staff","project_status": "draft"|"ready"|"filed","report_type": "initial"|"subsequent"|"amended"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -237,7 +362,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "license_type": ["PE", "RA"],"member_role": ["qewi", "staff"]
+            "borough": ["manhattan", "bronx", "brooklyn", "queens", "staten_island"],"closeup_method": ["scaffold", "swing_stage", "boom_lift", "rope"],"license_type": ["PE", "RA"],"member_role": ["qewi", "staff"],"project_status": ["draft", "ready", "filed"],"report_type": ["initial", "subsequent", "amended"]
           }
         }
 } as const
