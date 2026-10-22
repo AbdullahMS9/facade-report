@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { Button, Field, PageShell } from "@/components/ui";
+import { BackLink, Button, Field, PageShell } from "@/components/ui";
 import { requireMember } from "@/lib/auth";
 import { publicEnv } from "@/lib/env";
 import { ActionForm } from "@/components/ActionForm";
@@ -29,7 +28,7 @@ export default async function TeamPage() {
 
   return (
     <PageShell title="Team">
-      <Link href="/" className="text-sm underline">← {membership.firmName}</Link>
+      <BackLink href="/">{membership.firmName}</BackLink>
 
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-semibold">Members</h2>

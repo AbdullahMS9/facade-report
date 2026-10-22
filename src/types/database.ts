@@ -230,6 +230,9 @@ isOneToOne: false
 "create_firm":
 { Args: { "p_name": string }; Returns: string
                            },
+"create_project":
+{ Args: { "p_address"?: string,"p_bin"?: string,"p_block"?: number,"p_borough"?: Database["public"]['Enums']["borough"],"p_building_id"?: string,"p_cycle": number,"p_lot"?: number,"p_report_type": Database["public"]['Enums']["report_type"] }; Returns: string
+                           },
 "firm_members":
 { Args: Record<PropertyKey, never>; Returns: {
               "email": string,"joined_at": string,"role": Database["public"]['Enums']["member_role"],"user_id": string

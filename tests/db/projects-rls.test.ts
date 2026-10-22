@@ -203,3 +203,51 @@ describe("data checks", () => {
     expect(error).not.toBeNull();
   });
 });
+
+describe("create_project()", () => {
+  it("creates a building and project together", async () => {
+    const { data: projectId, error } = await staffA.db.rpc("create_project", {
+      p_cycle: 10,
+      p_report_type: "initial",
+      p_address: "500 Imaginary Road",
+      p_borough: "brooklyn",
+      p_block: 2345,
+    });
+    expect(error).toBeNull();
+    const row = await staffA.db.from("projects").select("cycle, buildings(address, firm_id)").eq("id", projectId!).single();
+    expect(row.data).toMatchObject({ cycle: 10, buildings: { address: "500 Imaginary Road", firm_id: firmA } });
+  });
+
+  it("reuses an existing building", async () => {
+    const { data: projectId, error } = await qewiA.db.rpc("create_project", {
+      p_cycle: 11,
+      p_report_type: "initial",
+      p_building_id: idsA.buildings,
+    });
+    expect(error).toBeNull();
+    const row = await qewiA.db.from("projects").select("building_id").eq("id", projectId!).single();
+    expect(row.data?.building_id).toBe(idsA.buildings);
+  });
+
+  it("won't use another firm's building", async () => {
+    const { error } = await qewiA.db.rpc("create_project", {
+      p_cycle: 10,
+      p_report_type: "initial",
+      p_building_id: idsB.buildings,
+    });
+    expect(error).not.toBeNull();
+  });
+
+  it("leaves nothing behind when the project can't be created", async () => {
+    const before = await qewiA.db.from("buildings").select("id");
+    const { error } = await qewiA.db.rpc("create_project", {
+      p_cycle: 500, // out of range: project insert fails after the building insert
+      p_report_type: "initial",
+      p_address: "600 Rollback Lane",
+      p_borough: "queens",
+    });
+    expect(error).not.toBeNull();
+    const after = await qewiA.db.from("buildings").select("id");
+    expect(after.data?.length).toBe(before.data?.length);
+  });
+});

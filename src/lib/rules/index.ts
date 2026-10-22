@@ -7,3 +7,4 @@ export * from "./probes";
 export * from "./classification";
 export * from "./priorItems";
 export * from "./deadline";
+export * from "./filingSummary";

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
 
 // Small, mobile-first building blocks. Tap targets are at least 48px tall.
@@ -57,5 +58,14 @@ export function Message({ tone, children }: { tone: "error" | "success" | "info"
     <p role={tone === "error" ? "alert" : "status"} className={`rounded-lg border px-3 py-2 text-sm ${styles}`}>
       {children}
     </p>
+  );
+}
+
+// "← Back" link with a full 48px tap target.
+export function BackLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link href={href} className="-my-3 inline-flex min-h-12 items-center self-start text-sm underline">
+      ← {children}
+    </Link>
   );
 }
