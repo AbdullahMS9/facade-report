@@ -1,6 +1,6 @@
 import "server-only";
 import type { Db } from "@/lib/db/queries";
-import { serverEnv } from "@/lib/env";
+import { serverEnv } from "@/lib/serverEnv";
 import type { Borough } from "@/lib/schemas/building";
 import {
   fetchPriorFilings,
