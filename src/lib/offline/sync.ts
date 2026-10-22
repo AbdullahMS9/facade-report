@@ -16,9 +16,13 @@ export interface SyncSummary {
 
 let running: Promise<SyncSummary> | null = null;
 
-// Sends whatever is due. Only one run at a time; callers share it.
+// Sends whatever is due, one run at a time. A background call joins a run in
+// progress. A forced call (after the user saves something) waits for it and
+// then runs again, because the run in progress started before the new item
+// was queued.
 export function syncNow(force = false): Promise<SyncSummary> {
-  running ??= run(force).finally(() => {
+  if (running) return force ? running.then(() => syncNow(true)) : running;
+  running = run(force).finally(() => {
     running = null;
   });
   return running;
@@ -28,6 +32,18 @@ async function run(force: boolean): Promise<SyncSummary> {
   const summary: SyncSummary = { sent: 0, failed: 0, signedOut: false, offline: false, notes: [] };
   if (typeof navigator !== "undefined" && !navigator.onLine) return { ...summary, offline: true };
 
+  // Re-plan after each pass that sent something: photos are held back until
+  // their observation is sent, so they go in the following pass.
+  for (let pass = 0; pass < 5; pass++) {
+    const sentBefore = summary.sent;
+    const stop = await runPass(force, summary);
+    if (stop || summary.sent === sentBefore) break;
+  }
+  return summary;
+}
+
+// One pass over what's due now. Returns true to stop (signed out).
+async function runPass(force: boolean, summary: SyncSummary): Promise<boolean> {
   const db = offlineDb();
   const [observations, photos] = await Promise.all([db.observations.toArray(), db.photos.toArray()]);
   const meta = (x: { id: string; createdAt: number; attempts: number; lastAttemptAt: number | null; blocked: boolean }) => ({
@@ -57,7 +73,10 @@ async function run(force: boolean): Promise<SyncSummary> {
       } else {
         await markFailed((c) => db.observations.update(o.id, c), o.attempts, result);
         summary.failed++;
-        if (result.signedOut) return { ...summary, signedOut: true };
+        if (result.signedOut) {
+          summary.signedOut = true;
+          return true;
+        }
       }
     } else {
       const p = photos.find((x) => x.id === item.id)!;
@@ -70,11 +89,14 @@ async function run(force: boolean): Promise<SyncSummary> {
       } else {
         await markFailed((c) => db.photos.update(p.id, c), p.attempts, result);
         summary.failed++;
-        if (result.signedOut) return { ...summary, signedOut: true };
+        if (result.signedOut) {
+          summary.signedOut = true;
+          return true;
+        }
       }
     }
   }
-  return summary;
+  return false;
 }
 
 type Result = { ok: true; note?: string } | { ok: false; error: string; retry: boolean; signedOut?: boolean };

@@ -67,7 +67,7 @@ test("record an observation with photos, check warnings, and delete it", async (
   await page.getByRole("link", { name: "New observation" }).click();
   const big = withExifDate(await makeJpeg(page, 1600, 1200, "Parapet"), "2026:09:21 10:30:00");
   const small = await makeJpeg(page, 600, 400, "Small");
-  await page.locator("#new-obs-library").setInputFiles([
+  await page.locator("#capture-library").setInputFiles([
     { name: "parapet.jpg", mimeType: "image/jpeg", buffer: big },
     { name: "small.jpg", mimeType: "image/jpeg", buffer: small },
   ]);
@@ -78,10 +78,10 @@ test("record an observation with photos, check warnings, and delete it", async (
   await expect(page.getByText(/Only 600 × 400/)).toHaveCount(0);
 
   await page.getByText("UNSAFE", { exact: true }).click();
-  await page.getByLabel("Elevation").selectOption({ label: "North" });
+  await page.getByLabel("Elevation", { exact: true }).selectOption({ label: "North" });
   await page.getByLabel("Floor").fill("Roof");
   await page.getByLabel("Element").fill("Parapet");
-  await page.getByLabel("Condition").fill("Loose coping stones along the street side");
+  await page.getByLabel("Condition", { exact: true }).fill("Loose coping stones along the street side");
   await page.getByLabel("Repair by").fill("2028-01-01");
   await expect(page.getByText(/UNSAFE repairs must be done within 1 year/)).toBeVisible();
   await page.getByLabel("Repair by").fill("2027-06-01");

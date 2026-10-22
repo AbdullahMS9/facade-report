@@ -12,27 +12,6 @@ const BAD_REQUEST = { error: "Something went wrong. Reload the page and try agai
 // The schema transforms its output, so read the field names from its input side.
 const fields = (fd: FormData) => formFields(observationSchema.in, fd);
 
-// Called by the new-observation form before it uploads photos; returns the id.
-export async function createObservation(
-  projectId: string,
-  formData: FormData,
-): Promise<{ id?: string; error?: string }> {
-  const project = z.uuid().safeParse(projectId);
-  if (!project.success) return BAD_REQUEST;
-  const parsed = observationSchema.safeParse(fields(formData));
-  if (!parsed.success) return { error: firstError(parsed.error) };
-
-  const { supabase, membership } = await requireMember();
-  const { data, error } = await supabase
-    .from("observations")
-    .insert({ ...parsed.data, project_id: project.data, firm_id: membership.firmId })
-    .select("id")
-    .single();
-  if (error) return { error: friendlyDbError(error, "We couldn't save the observation. Please try again.") };
-  revalidatePath(`/projects/${project.data}`, "layout");
-  return { id: data.id };
-}
-
 export async function updateObservation(
   projectId: string,
   observationId: string,

@@ -7,7 +7,7 @@ import { filingSummary } from "@/lib/rules";
 import { BOROUGH_LABEL } from "@/lib/schemas/building";
 import { REPORT_TYPE_LABEL } from "@/lib/schemas/project";
 import { formatDate, todayInNewYork } from "@/lib/today";
-import { signOut } from "./auth-actions";
+import { SignOutButton } from "@/components/SignOutButton";
 
 export default async function Home() {
   const { supabase, user, membership } = await requireMember();
@@ -69,9 +69,7 @@ export default async function Home() {
 
       <div className="flex items-center justify-between">
         <Link href="/team" className="min-h-12 content-center text-sm underline">Team</Link>
-        <form action={signOut}>
-          <button type="submit" className="min-h-12 text-sm underline">Sign out</button>
-        </form>
+        <SignOutButton />
       </div>
     </PageShell>
   );

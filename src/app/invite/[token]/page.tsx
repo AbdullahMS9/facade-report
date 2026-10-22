@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Message, PageShell } from "@/components/ui";
 import { getSession } from "@/lib/auth";
 import { tokenSchema } from "@/lib/schemas";
-import { signOut } from "../../auth-actions";
+import { SignOutButton } from "@/components/SignOutButton";
 import { AcceptForm } from "./AcceptForm";
 
 export default async function InvitePage(props: PageProps<"/invite/[token]">) {
@@ -54,9 +54,7 @@ export default async function InvitePage(props: PageProps<"/invite/[token]">) {
             You&apos;re signed in as {user.email}, but this invitation is for {preview.email}. Sign
             out, then sign in with the invited email.
           </Message>
-          <form action={signOut}>
-            <button type="submit" className="min-h-12 underline">Sign out</button>
-          </form>
+          <SignOutButton />
         </>
       ) : membership ? (
         <Message tone="error">

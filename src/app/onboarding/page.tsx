@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { PageShell } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
-import { signOut } from "../auth-actions";
+import { SignOutButton } from "@/components/SignOutButton";
 import { CreateFirmForm } from "./CreateFirmForm";
 
 export default async function OnboardingPage() {
@@ -19,9 +19,7 @@ export default async function OnboardingPage() {
         Joining a firm that already uses Facade Report? Ask its QEWI to invite this email, then
         open the link in the invitation.
       </p>
-      <form action={signOut}>
-        <button type="submit" className="min-h-12 text-sm underline">Sign out</button>
-      </form>
+      <SignOutButton />
     </PageShell>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { StatusBadge } from "@/components/Badges";
+import { OfflineSnapshot } from "@/components/OfflineSnapshot";
 import { BackLink, PageShell } from "@/components/ui";
 import { listElevations } from "@/lib/db/queries";
 import { filingSummary, probesApply } from "@/lib/rules";
@@ -84,6 +85,21 @@ export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
         <span>{REPORT_TYPE_LABEL[project.report_type]}</span>
         <StatusBadge status={project.status} />
       </div>
+
+      <OfflineSnapshot
+        snapshot={{
+          id: project.id,
+          firmId: membership.firmId,
+          address: building.address,
+          cycle: project.cycle,
+          finalInspectionDate: project.final_visual_date,
+          elevations: (elevations ?? []).map((e) => ({
+            id: e.id,
+            name: e.name,
+            closeups: e.closeups.map((c) => ({ id: c.id, location_note: c.location_note })),
+          })),
+        }}
+      />
 
       <FilingPanel summary={summary} projectId={project.id} filed={project.status === "filed"} />
 
