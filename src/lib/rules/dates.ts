@@ -83,3 +83,11 @@ export function earliestDate(dates: readonly IsoDate[]): IsoDate {
   if (first === undefined) throw new RangeError("earliestDate needs at least one date");
   return rest.reduce((min, d) => (compareDates(d, min) < 0 ? d : min), first);
 }
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// "2027-02-21" → "Feb 21, 2027", for messages.
+export function formatUsDate(value: IsoDate): string {
+  const { year, month, day } = parseIsoDate(value);
+  return `${MONTHS[month - 1]} ${day}, ${year}`;
+}
