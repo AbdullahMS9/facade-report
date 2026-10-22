@@ -250,7 +250,8 @@ RLS: a user can only read and write rows where `firm_id` matches their membershi
   owner_principal_name, owner_principal_title
 - `projects` — building_id, cycle (e.g. 10), report_type (`initial` | `subsequent` |
   `amended`), qewi_id, status (`draft` | `ready` | `filed`), exam_start, exam_end,
-  final_visual_date, closeup_complete_date, unsafe_notified_on
+  final_visual_date, closeup_complete_date, unsafe_notified_on, public_protection_note,
+  probe_waiver (`tie_repair` | `new_building` | `alternate_method`, nullable), probe_waiver_note
 - `elevations` — project_id, name, faces_street, frontage_ft, setbacks_note, sort_order
 - `closeups` — elevation_id, location_note, inspected_on, method (`scaffold` | `swing_stage` |
   `boom_lift` | `rope`)
@@ -394,6 +395,18 @@ containers without the custom email templates, and sign-in emails fall back to d
 - When an input's files are processed with `await`, copy the FileList to an array first:
   resetting the input empties it.
 
+### Checker (built in step 8)
+- `src/lib/rules/checker.ts`: `runChecks(input)` returns every §3.7 check plus §3.5
+  warnings (QEWI chosen, owner, exam dates, causes, elevation photos, camera dates), each
+  `{ id, title, passed, severity, message, fix, related }`. Pure and fully tested.
+- `src/app/projects/[id]/load.ts`: `loadChecks(id)` gathers the data (cached per request).
+  The project layout shows the checker bar on every project page; `/checker` lists
+  everything with fix links (`checkLinks.ts`).
+- "Ready to file" / "Filed" are refused while blockers remain; back to Draft always works.
+- The probe check stays a blocker; a recorded probe waiver (§3.3 exceptions) clears it.
+- Fieldsets and selects use `min-w-0`/`w-full`: a long `<option>` can otherwise widen a
+  fieldset past the phone screen and break taps.
+
 ### Offline (built in step 7)
 - New observations and photos are always saved on the phone first (Dexie outbox,
   `src/lib/offline/`), then synced: on app open, when back online, every 30 s while items
@@ -496,4 +509,7 @@ containers without the custom email templates, and sign-in emails fall back to d
 | 2026-10-21 | Hand-written service worker, no Serwist | ~100 lines covers field mode; no new dependency |
 | 2026-10-21 | Offline scope: new observations and photos only | Avoids edit conflicts; revisit if field staff need offline drops/edits |
 | 2026-10-21 | Playwright runs against a production build on :3100 | Service workers need a production build; avoids reusing a stale dev server |
+| 2026-10-22 | Checker blocks "ready to file" until no blockers | §3.7 checks are the point of the app; QEWI can still return to Draft |
+| 2026-10-22 | Probe waiver recorded on the project | Lets the probe check stay a blocker without trapping valid exceptions |
+| 2026-10-22 | Extra checker warnings from §3.5 report contents | Catch gaps the §3.7 list doesn't cover; never block |
 | 2026-10-21 | Accept `braces` audit warning (eslint-config-next dev dependency) | Dev-only lint tooling; only “fix” is downgrading to Next 14 lint config |
