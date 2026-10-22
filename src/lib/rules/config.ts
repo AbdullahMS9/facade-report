@@ -15,6 +15,7 @@ export interface FispRules {
   };
   closeups: { intervalFeet: number; minimumPerBuilding: number };
   probes: { firstCycle: number; requiredInEvenCycles: boolean };
+  repairLimits: { unsafeMaxYears: number; swarmpMinYears: number; swarmpMaxYears: number };
   filingLimits: {
     daysAfterFinalInspection: number;
     yearsAfterCloseup: number;
@@ -64,6 +65,16 @@ export const FISP_RULES: Readonly<FispRules> = {
     // UNCONFIRMED: rule text only mandates odd cycles; other DOB material says
     // probes are currently required. Confirm with a QEWI (CLAUDE.md §3.3).
     requiredInEvenCycles: true,
+  },
+
+  repairLimits: {
+    // §103-04(a) "Unsafe condition": repair within one year of completion of
+    // critical examinations. "SWARMP": repairs during the next five years, but
+    // not less than one year. Measured from the QEWI's final inspection, which
+    // §103-04(c)(2)(viii) defines as completion (ASSUMPTION for SWARMP; confirm).
+    unsafeMaxYears: 1,
+    swarmpMinYears: 1,
+    swarmpMaxYears: 5,
   },
 
   filingLimits: {
