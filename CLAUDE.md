@@ -260,7 +260,8 @@ RLS: a user can only read and write rows where `firm_id` matches their membershi
   recommended_repair, repair_by_date
 - `photos` — project_id, observation_id (nullable), kind (`condition` | `elevation` |
   `inspector` | `probe` | `typical`), storage_path, taken_at, width, height, caption
-- `prior_items` — project_id, description, repaired (bool), source (`manual` | `opendata`)
+- `prior_items` — project_id, description, location_note, repaired (nullable bool: null = not decided),
+  notes. Entered by hand (Open Data has no condition-level data).
 - `contractors` — project_id, role (`rigger` | `contractor` | `consultant`), name, license
 
 Child tables reference parents by `(id, firm_id)` so rows can't link across firms.
@@ -274,12 +275,40 @@ Photos go in a **private** storage bucket and are served with short-lived signed
 
 - Dataset: "DOB NOW: Safety – Facades Compliance Filings", id `xubg-57si`.
 - API: `https://data.cityofnewyork.us/resource/xubg-57si.json` (Socrata/SODA).
-- Field names are not documented here yet. **Before writing the client, fetch a
-  few rows and record the real field names in this file.**
+  Updated every weekday. ~87,000 rows (Oct 2026), cycles 6–10. Works without a token.
+- **One row per filing** (or per missed filing). It has **statuses only, not the
+  individual conditions**, so prior SWARMP items can't be imported; inspectors enter
+  them (`prior_items`).
 - Query by BIN, or by borough + block + lot. Cache results; never block the UI on it.
-- An app token (free) raises rate limits. Keep it in env vars.
+  Placeholder BINs (`[1-5]000000`, ~29 rows) are not unique: use borough/block/lot.
+- An app token (free) raises rate limits. Keep it in env vars (`NYC_OPEN_DATA_APP_TOKEN`).
+- Rows contain real owner and QEWI names (public data). Never put real rows in the repo;
+  test fixtures are fictional.
 
----
+Field names (checked 2026-10-21; every field is `text` except the `calendar_date` ones):
+
+| Field | Notes |
+| --- | --- |
+| `tr6_no` | Filing number, e.g. `TR6-000000-8A-I1` |
+| `control_no`, `sequence_no` | DOB control and sequence numbers |
+| `filing_type` | `Initial`, `Subsequent`, `Amended`, `Auto-Generated` (placeholder for a missing report) |
+| `cycle` | `"6"`–`"10"` as text (sort numerically) |
+| `bin` | 7 digits |
+| `house_no`, `street_name` | Address parts |
+| `borough` | `Manhattan`, `Bronx`, `Brooklyn`, `Queens`, `Staten Island` |
+| `block`, `lot` | Text, no leading zeros in almost all rows (121 exceptions) |
+| `filing_status` | `SAFE`, `SWARMP`, `UNSAFE`, `No Report Filed` (status in this filing) |
+| `current_status` | Building's current status for that cycle; may be blank |
+| `prior_status` | Status from the previous cycle, as reported in this filing |
+| `filing_date`, `submitted_on`, `prior_cycle_filing_date` | `calendar_date` |
+| `field_inspection_completed_date`, `qewi_signed_date` | `calendar_date` |
+| `qewi_name`, `qewi_nys_lic_no` | e.g. `PE - 000000` |
+| `qewi_bus_name`, `qewi_bus_street_name`, `qewi_city`, `qewi_state`, `qewi_zip` | QEWI firm |
+| `owner_name`, `owner_bus_name`, `owner_bus_street_name`, `owner_city`, `owner_state`, `owner_zip` | Owner (not stored by us) |
+| `late_filing_amt`, `failure_to_file_amt`, `failure_to_correct_amt` | Penalties, text dollars |
+| `comments` | Free text |
+| `exterior_wall_type_s_`, `exterior_wall_type_other_description` | e.g. `BRICK MASONRY` |
+| `exterior_wall_material_s_`, `exterior_wall_material_other_description` | e.g. `MASONRY` |
 
 ## 8. Security and privacy
 
