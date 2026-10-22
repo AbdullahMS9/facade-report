@@ -109,3 +109,25 @@ describe("priorItemSchema", () => {
     expect(priorItemSchema.safeParse({ description: "", repaired: "no" }).success).toBe(false);
   });
 });
+
+describe("observationSchema", () => {
+  it("parses a minimal observation", async () => {
+    const { observationSchema } = await import("./observation");
+    const r = observationSchema.parse({ element: "Parapet", condition: "Loose coping stones", classification: "unsafe" });
+    expect(r).toMatchObject({ elevation_id: null, closeup_id: null, floor: null, repair_by_date: null });
+  });
+
+  it("drops a drop without an elevation", async () => {
+    const { observationSchema } = await import("./observation");
+    const id = "6f1c2b8a-3d4e-4f5a-8b6c-7d8e9f0a1b2c";
+    expect(
+      observationSchema.parse({ closeup_id: id, element: "Lintel", condition: "Rust", classification: "safe" }).closeup_id,
+    ).toBeNull();
+  });
+
+  it("requires element, condition and classification", async () => {
+    const { observationSchema } = await import("./observation");
+    expect(observationSchema.safeParse({ element: "", condition: "x", classification: "safe" }).success).toBe(false);
+    expect(observationSchema.safeParse({ element: "x", condition: "x", classification: "fine" }).success).toBe(false);
+  });
+});

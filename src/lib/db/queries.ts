@@ -33,7 +33,27 @@ export function listElevations(db: Db, projectId: string) {
     .select("id, name, faces_street, frontage_ft, setbacks_note, sort_order, closeups(id, location_note, inspected_on, method, probes(id))")
     .eq("project_id", projectId)
     .order("sort_order")
+    .order("created_at")
+    .order("inspected_on", { referencedTable: "closeups" })
+    .order("created_at", { referencedTable: "closeups" });
+}
+
+export function listObservations(db: Db, projectId: string) {
+  return db
+    .from("observations")
+    .select("*, elevations(name, sort_order), photos(id, display_path, width, height, taken_at, taken_at_source)")
+    .eq("project_id", projectId)
     .order("created_at");
+}
+
+export function getObservation(db: Db, projectId: string, observationId: string) {
+  return db
+    .from("observations")
+    .select("*, photos(id, display_path, width, height, taken_at, taken_at_source)")
+    .eq("project_id", projectId)
+    .eq("id", observationId)
+    .order("created_at", { referencedTable: "photos" })
+    .maybeSingle();
 }
 
 export function getElevation(db: Db, projectId: string, elevationId: string) {

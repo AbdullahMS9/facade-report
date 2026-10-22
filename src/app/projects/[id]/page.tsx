@@ -9,6 +9,7 @@ import { REPORT_TYPE_LABEL } from "@/lib/schemas/project";
 import { formatDate, todayInNewYork } from "@/lib/today";
 import { ElevationsCard } from "./ElevationsCard";
 import { FilingPanel } from "./FilingPanel";
+import { ObservationsCard } from "./ObservationsCard";
 import { PriorFilingsPanel, PriorFilingsSkeleton } from "./PriorFilingsPanel";
 import { PriorItemsCard } from "./PriorItemsCard";
 import { loadProject } from "./load";
@@ -54,7 +55,15 @@ export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
   const { id } = await props.params;
   const { supabase, project, building, membership } = await loadProject(id);
   const { data: elevations } = await listElevations(supabase, project.id);
-  const { data: priorItems } = await supabase.from("prior_items").select("repaired").eq("project_id", project.id);
+  const [{ data: priorItems }, { data: observations }, { count: projectPhotoCount }] = await Promise.all([
+    supabase.from("prior_items").select("repaired").eq("project_id", project.id),
+    supabase.from("observations").select("classification, photos(count)").eq("project_id", project.id),
+    supabase
+      .from("photos")
+      .select("id", { count: "exact", head: true })
+      .eq("project_id", project.id)
+      .is("observation_id", null),
+  ]);
   const summary = filingSummary({
     block: building.block,
     cycle: project.cycle,
@@ -77,6 +86,16 @@ export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
       </div>
 
       <FilingPanel summary={summary} projectId={project.id} filed={project.status === "filed"} />
+
+      <ObservationsCard
+        projectId={project.id}
+        observations={(observations ?? []).map((o) => ({
+          classification: o.classification,
+          photoCount: o.photos[0]?.count ?? 0,
+        }))}
+        priorItems={priorItems ?? []}
+        projectPhotoCount={projectPhotoCount ?? 0}
+      />
 
       <ElevationsCard
         projectId={project.id}

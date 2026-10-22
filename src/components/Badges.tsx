@@ -17,3 +17,14 @@ export function DaysLeft({ days }: { days: number }) {
     days < 0 ? `${-days} day${days === -1 ? "" : "s"} overdue` : days === 0 ? "Due today" : `${days} day${days === 1 ? "" : "s"} left`;
   return <span className={`text-sm font-medium ${tone}`}>{text}</span>;
 }
+
+const CLASS_STYLE = {
+  safe: "bg-green-100 text-green-900",
+  swarmp: "bg-amber-100 text-amber-900",
+  unsafe: "bg-red-100 text-red-900",
+} as const;
+const CLASS_TEXT = { safe: "SAFE", swarmp: "SWARMP", unsafe: "UNSAFE" } as const;
+
+export function ClassificationBadge({ value }: { value: keyof typeof CLASS_STYLE }) {
+  return <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${CLASS_STYLE[value]}`}>{CLASS_TEXT[value]}</span>;
+}
