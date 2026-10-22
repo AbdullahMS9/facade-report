@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { codeSchema, emailSchema, safeNextPath } from "./schemas";
-import { friendlyDbError } from "./dbErrors";
+import { codeSchema, emailSchema, safeNextPath } from ".";
+import { friendlyDbError } from "../dbErrors";
 
 describe("safeNextPath", () => {
   it.each([

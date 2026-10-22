@@ -5,7 +5,8 @@ import { requireMember } from "@/lib/auth";
 import { createAdminClient } from "@/lib/db/admin";
 import { friendlyDbError } from "@/lib/dbErrors";
 import { publicEnv } from "@/lib/env";
-import { emailSchema, firstError, roleSchema } from "@/lib/schemas";
+import { emailSchema, firstError, formFields, roleSchema, type FormState } from "@/lib/schemas";
+import { inspectorSchema } from "@/lib/schemas/inspector";
 import { z } from "zod";
 
 export type InviteState =
@@ -56,5 +57,35 @@ export async function revokeInvitation(formData: FormData) {
   const { supabase } = await requireMember();
   // RLS allows this only for the firm's QEWI and only for open invitations.
   await supabase.from("invitations").delete().eq("id", id.data);
+  revalidatePath("/team");
+}
+
+export async function addInspector(_prev: FormState, formData: FormData): Promise<FormState> {
+  const parsed = inspectorSchema.safeParse(formFields(inspectorSchema, formData));
+  if (!parsed.success) return { error: firstError(parsed.error) };
+
+  const { supabase, membership } = await requireMember();
+  if (membership.role !== "qewi") return { error: "Only a QEWI can add inspectors." };
+
+  const { error } = await supabase.from("inspectors").insert({ firm_id: membership.firmId, ...parsed.data });
+  if (error) {
+    return {
+      error:
+        error.code === "23505"
+          ? "That license is already listed."
+          : friendlyDbError(error, "We couldn't add the inspector. Please try again."),
+    };
+  }
+  revalidatePath("/team");
+  return { ok: true };
+}
+
+export async function removeInspector(formData: FormData) {
+  const id = z.uuid().safeParse(formData.get("id"));
+  if (!id.success) return;
+  const { supabase } = await requireMember();
+  // RLS allows this only for the firm's QEWI. Projects using this inspector
+  // keep their data; their QEWI field is cleared.
+  await supabase.from("inspectors").delete().eq("id", id.data);
   revalidatePath("/team");
 }

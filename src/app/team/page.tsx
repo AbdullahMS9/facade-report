@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { Button, PageShell } from "@/components/ui";
+import { Button, Field, PageShell } from "@/components/ui";
 import { requireMember } from "@/lib/auth";
 import { publicEnv } from "@/lib/env";
-import { revokeInvitation } from "./actions";
+import { ActionForm } from "@/components/ActionForm";
+import { Select } from "@/components/fields";
+import { addInspector, removeInspector, revokeInvitation } from "./actions";
 import { InviteForm } from "./InviteForm";
 
 const ROLE_LABEL = { qewi: "QEWI", staff: "Staff" } as const;
@@ -12,6 +14,10 @@ export default async function TeamPage() {
   const isQewi = membership.role === "qewi";
 
   const { data: members } = await supabase.rpc("firm_members");
+  const { data: inspectors } = await supabase
+    .from("inspectors")
+    .select("id, name, license_type, license_number")
+    .order("name");
   const { data: invitations } = isQewi
     ? await supabase
         .from("invitations")
@@ -38,6 +44,54 @@ export default async function TeamPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <h2 className="text-lg font-semibold">Inspectors (QEWIs)</h2>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          Licensed QEWIs who can sign this firm&apos;s reports. Each project names one.
+        </p>
+        {inspectors && inspectors.length > 0 ? (
+          <ul className="flex flex-col gap-3">
+            {inspectors.map((i) => (
+              <li key={i.id} className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-3 dark:border-neutral-700">
+                <div className="flex justify-between gap-3">
+                  <span>{i.name}</span>
+                  <span className="shrink-0 text-sm">{i.license_type} {i.license_number}</span>
+                </div>
+                {isQewi ? (
+                  <form action={removeInspector}>
+                    <input type="hidden" name="id" value={i.id} />
+                    <Button type="submit" variant="danger" className="w-full">Remove</Button>
+                  </form>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">No inspectors yet.</p>
+        )}
+        {isQewi ? (
+          <ActionForm action={addInspector} submitLabel="Add inspector" pendingLabel="Adding…" resetOnSuccess>
+            <Field label="Name" name="name" required maxLength={200} />
+            <Select label="License type" name="license_type" defaultValue="PE">
+              <option value="PE">PE (Professional Engineer)</option>
+              <option value="RA">RA (Registered Architect)</option>
+            </Select>
+            <Field label="License number" name="license_number" required maxLength={50} />
+            <Select
+              label="Team member (optional)"
+              name="user_id"
+              defaultValue=""
+              hint="Link the license to their Facade Report account."
+            >
+              <option value="">Not linked</option>
+              {(members ?? []).map((m) => (
+                <option key={m.user_id} value={m.user_id}>{m.email}</option>
+              ))}
+            </Select>
+          </ActionForm>
+        ) : null}
       </section>
 
       {isQewi ? (
