@@ -407,6 +407,18 @@ containers without the custom email templates, and sign-in emails fall back to d
 - Fieldsets and selects use `min-w-0`/`w-full`: a long `<option>` can otherwise widen a
   fieldset past the phone screen and break taps.
 
+### Report export (built in step 9)
+- `GET /projects/[id]/report` builds the `.docx` on the server as the signed-in user.
+  `src/lib/report/data.ts` gathers data (photos = display copies from storage);
+  `build.ts` is pure and follows §3.5's 18 sections in order.
+- Missing data → highlighted "[QEWI to complete: …]" placeholders. Narrative sections
+  (5, 7, 13, 16, conclusions, procedures) are always placeholders for now.
+- Photos are numbered in a fixed order (elevation, inspector, conditions by elevation,
+  probe, typical), two per page, captions carry the status label (§3.6).
+- Header says "DRAFT – N checker blockers" until the checker is clear. US Letter, 1" margins.
+- Tests read the .docx with `src/lib/report/unzip.ts` (Node zlib). Zip files include
+  folder entries (e.g. `word/media/`); skip names ending in `/`.
+
 ### Offline (built in step 7)
 - New observations and photos are always saved on the phone first (Dexie outbox,
   `src/lib/offline/`), then synced: on app open, when back online, every 30 s while items
@@ -454,7 +466,10 @@ containers without the custom email templates, and sign-in emails fall back to d
 - What do firms use today to assemble reports? (Assumed: Word, Excel, photo folders.)
 - Most common DOB rejection reasons?
 - Is the DOB NOW upload a single PDF, or separate fields and attachments?
-- Do firms want our report layout, or export into their own Word template?
+- Do firms want our report layout, or export into their own Word template? (Step 9 ships
+  our layout with highlighted placeholders; check a generated report with a QEWI.)
+- Should the narrative sections (§3.5 items 5, 7, 13, 16) be written in the app, plus a
+  riggers/contractors list (`contractors` table, not built yet)?
 - Probe requirement in Cycle 10 (see 3.3). §103-04(c)(2)(v) (PDF dated Feb 3, 2026)
   reads "starting with the ninth cycle … and, at a minimum, during every subsequent
   odd-numbered cycle", which literally means Cycle 10 is not required. Coded as
@@ -512,4 +527,7 @@ containers without the custom email templates, and sign-in emails fall back to d
 | 2026-10-22 | Checker blocks "ready to file" until no blockers | §3.7 checks are the point of the app; QEWI can still return to Draft |
 | 2026-10-22 | Probe waiver recorded on the project | Lets the probe check stay a blocker without trapping valid exceptions |
 | 2026-10-22 | Extra checker warnings from §3.5 report contents | Catch gaps the §3.7 list doesn't cover; never block |
+| 2026-10-22 | Report narrative sections are placeholders; no in-app text editor yet | Firms edit the Word file; template question still open |
+| 2026-10-22 | Report uses 2000 px display copies, two photos per page | ~20 MB for 50 photos; no server image library needed |
+| 2026-10-22 | `docx` pinned at 9.8.1 | Newer releases were under two weeks old |
 | 2026-10-21 | Accept `braces` audit warning (eslint-config-next dev dependency) | Dev-only lint tooling; only “fix” is downgrading to Next 14 lint config |
