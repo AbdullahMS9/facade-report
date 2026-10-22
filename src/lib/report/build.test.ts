@@ -96,7 +96,7 @@ async function render(data: ReportData) {
     .filter((k) => /^word\/header\d*\.xml$/.test(k))
     .map((k) => docxText(files.get(k)!.toString("utf8")))
     .join(" ");
-  const media = [...files.keys()].filter((k) => k.startsWith("word/media/"));
+  const media = [...files.keys()].filter((k) => k.startsWith("word/media/") && !k.endsWith("/"));
   return { body, header, media };
 }
 
@@ -173,5 +173,14 @@ describe("buildReport", () => {
     expect(body).toContain("No UNSAFE or SWARMP conditions were found.");
     expect(body).toContain("[QEWI to complete: QEWI name and license number]");
     expect(body).not.toContain("DOB and owner notified");
+  });
+});
+
+describe("page setup", () => {
+  it("uses US Letter with 1-inch margins", async () => {
+    const files = unzip(await Packer.toBuffer(buildReport(fixture())));
+    const xml = files.get("word/document.xml")!.toString("utf8");
+    expect(xml).toMatch(/<w:pgSz w:w="12240" w:h="15840"/);
+    expect(xml).toMatch(/<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/);
   });
 });

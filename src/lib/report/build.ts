@@ -45,6 +45,16 @@ export const SECTION_TITLES = [
 ] as const;
 
 const CLASS = { safe: "SAFE", swarmp: "SWARMP", unsafe: "UNSAFE" } as const;
+
+// US Letter with 1-inch margins (twips: 1440 per inch).
+const PAGE = { width: 12240, height: 15840, margin: 1440 };
+const CONTENT_WIDTH = PAGE.width - 2 * PAGE.margin; // 9360
+
+// Column widths from relative weights, summing to the content width.
+function columns(weights: number[]): number[] {
+  const total = weights.reduce((a, b) => a + b, 0);
+  return weights.map((w) => Math.floor((CONTENT_WIDTH * w) / total));
+}
 const PLACEHOLDER_PREFIX = "[QEWI to complete: ";
 
 // ---------------------------------------------------------------------------
@@ -87,9 +97,10 @@ function cell(text: string, opts: { header?: boolean } = {}): TableCell {
   });
 }
 
-function table(headers: string[], rows: string[][]): Table {
+function table(headers: string[], rows: string[][], weights: number[] = headers.map(() => 1)): Table {
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
+    columnWidths: columns(weights),
     rows: [
       new TableRow({ tableHeader: true, children: headers.map((h) => cell(h, { header: true })) }),
       ...rows.map((r) => new TableRow({ children: r.map((v) => cell(v)) })),
@@ -100,6 +111,7 @@ function table(headers: string[], rows: string[][]): Table {
 function facts(rows: [string, string][]): Table {
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
+    columnWidths: columns([2, 3]),
     rows: rows.map(
       ([label, value]) =>
         new TableRow({ children: [cell(label, { header: true }), cell(value)] }),
@@ -194,7 +206,7 @@ export function buildReport(data: ReportData): Document {
       ["Cavity wall construction", yesNo(b.isCavityWall)],
     ]),
   );
-  add(todo("plan dimensions"));
+  add(gap(), todo("plan dimensions"));
 
   // 5. Distress since previous report
   add(heading(4));
@@ -280,6 +292,7 @@ export function buildReport(data: ReportData): Document {
             CLASS[o.classification],
             photoRefs(photos, o.id),
           ]),
+          [0.5, 2, 1.6, 3.2, 1.5, 1.3],
         )
       : todo("conditions observed"),
   );
@@ -300,6 +313,7 @@ export function buildReport(data: ReportData): Document {
             CLASS[o.classification],
             o.cause?.trim() ? o.cause : `${PLACEHOLDER_PREFIX}cause]`,
           ]),
+          [0.5, 1.8, 1.5, 4],
         )
       : para("No UNSAFE or SWARMP conditions were found."),
   );
@@ -356,6 +370,7 @@ export function buildReport(data: ReportData): Document {
             o.recommendedRepair?.trim() ? o.recommendedRepair : `${PLACEHOLDER_PREFIX}recommended repair]`,
             date(o.repairByDate),
           ]),
+          [0.5, 1.6, 1.5, 3.4, 1.5],
         )
       : para("No repairs are required."),
   );
@@ -403,6 +418,7 @@ export function buildReport(data: ReportData): Document {
   add(
     new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
+      columnWidths: columns([1, 1]),
       rows: [
         new TableRow({ children: [cell("Seal", { header: true }), cell("Signature and date", { header: true })] }),
         new TableRow({ height: { value: 2400, rule: HeightRule.ATLEAST }, children: [cell(""), cell("")] }),
@@ -421,6 +437,12 @@ export function buildReport(data: ReportData): Document {
     styles: { default: { document: { run: { font: "Calibri", size: 22 } } } },
     sections: [
       {
+        properties: {
+          page: {
+            size: { width: PAGE.width, height: PAGE.height },
+            margin: { top: PAGE.margin, right: PAGE.margin, bottom: PAGE.margin, left: PAGE.margin },
+          },
+        },
         headers: {
           default: new Header({
             children: [

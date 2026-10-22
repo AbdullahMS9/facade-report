@@ -1,4 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+import { docxText, unzip } from "../../src/lib/report/unzip";
 import { deleteUserAndFirm, signInCode, testEmail, withExifDate } from "./support";
 
 const email = testEmail("e2e-checker");
@@ -16,6 +18,23 @@ function isoDaysFromToday(days: number): string {
   return d.toISOString().slice(0, 10);
 }
 const exifDate = (iso: string) => `${iso.replaceAll("-", ":")} 10:00:00`;
+
+// Downloads the Word report from the page and returns its text and parts.
+async function downloadReport(page: Page) {
+  const [download] = await Promise.all([
+    page.waitForEvent("download"),
+    page.getByRole("link", { name: "Download report (.docx)" }).click(),
+  ]);
+  if (SHOTS) await download.saveAs(`${SHOTS}/${download.suggestedFilename()}`);
+  const files = unzip(await readFile((await download.path())!));
+  const header = [...files.keys()].filter((k) => /^word\/header\d*\.xml$/.test(k)).map((k) => docxText(files.get(k)!.toString())).join(" ");
+  return {
+    name: download.suggestedFilename(),
+    body: docxText(files.get("word/document.xml")!.toString()),
+    header,
+    media: [...files.keys()].filter((k) => k.startsWith("word/media/") && !k.endsWith("/")),
+  };
+}
 
 async function makeJpeg(page: Page, label: string): Promise<Buffer> {
   const base64 = await page.evaluate((label) => {
@@ -65,6 +84,12 @@ test("fix every checker blocker, then mark the report ready to file", async ({ p
   const projectUrl = page.url();
   await expect(page.getByRole("link", { name: /^Checker: \d+ blockers/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Before filing" })).toBeVisible();
+
+  // A draft report can be downloaded any time.
+  const draft = await downloadReport(page);
+  expect(draft.name).toMatch(/^FISP Cycle 10 – 55 Checker Street – \d{4}-\d{2}-\d{2}\.docx$/);
+  expect(draft.header).toMatch(/DRAFT – \d+ checker blockers/);
+  expect(draft.body).toContain("[QEWI to complete:");
 
   // "Ready to file" is refused now.
   await page.getByLabel("Status", { exact: true }).selectOption("ready");
@@ -146,6 +171,23 @@ test("fix every checker blocker, then mark the report ready to file", async ({ p
   await page.goto(projectUrl);
   await expect(page.getByRole("link", { name: "Checker: ready to file" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Before filing" })).toHaveCount(0);
+  // The final report: no DRAFT, real content, photos embedded.
+  const report = await downloadReport(page);
+  expect(report.header).not.toContain("DRAFT");
+  for (const text of [
+    "Building classification: SWARMP",
+    "Example Holdings LLC",
+    "Cracked brick at 3rd floor pier",
+    "Water infiltration and freeze-thaw",
+    "Pat Example, PE 000777",
+    "Photo 1. Elevation.",
+    "Photo 2. QEWI or staff performing close-up inspection.",
+    "Photo 3. SWARMP – Brick masonry, North elevation.",
+  ]) {
+    expect(report.body, text).toContain(text);
+  }
+  expect(report.media.length).toBe(3);
+
   await page.getByLabel("Status", { exact: true }).selectOption("ready");
   await page.getByRole("button", { name: "Update status" }).click();
   await expect(page.getByText("Status updated.")).toBeVisible();

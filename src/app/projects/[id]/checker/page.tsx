@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReportButton } from "@/components/ReportButton";
 import { BackLink, PageShell } from "@/components/ui";
 import type { CheckResult } from "@/lib/rules";
 import { checkLink, relatedLink } from "../checkLinks";
@@ -84,6 +85,8 @@ export default async function CheckerPage(props: PageProps<"/projects/[id]/check
           <p className="text-sm">No warnings.</p>
         )}
       </section>
+
+      <ReportButton projectId={project.id} blockers={blockers.length} />
 
       <details className="rounded-lg border border-neutral-200 px-3 dark:border-neutral-700">
         <summary className="flex min-h-12 cursor-pointer items-center font-semibold">Passed ({passed.length})</summary>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { StatusBadge } from "@/components/Badges";
 import { OfflineSnapshot } from "@/components/OfflineSnapshot";
+import { ReportButton } from "@/components/ReportButton";
 import { BackLink, PageShell } from "@/components/ui";
 import { listElevations } from "@/lib/db/queries";
 import { filingSummary, probesApply } from "@/lib/rules";
@@ -153,6 +154,10 @@ export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
             ["Owner", building.owner_name ?? "—"],
           ]}
         />
+      </Card>
+
+      <Card title="Report">
+        <ReportButton projectId={project.id} blockers={blockers.length} />
       </Card>
 
       {membership.role === "qewi" ? (

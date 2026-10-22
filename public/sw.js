@@ -83,6 +83,9 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Report downloads are files, never the field-mode page.
+  if (url.pathname.endsWith("/report")) return;
+
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
