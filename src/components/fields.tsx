@@ -5,34 +5,52 @@ import type { ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "re
 const control =
   "min-h-12 rounded-lg border border-neutral-300 bg-white px-3 text-base text-neutral-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100";
 
+// Labels point at their control by id (not by wrapping it), so the accessible
+// name is just the label, not the label plus the selected option.
+function Labelled({ id, label, hint, children }: { id: string; label: string; hint?: string; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-sm font-medium">{label}</label>
+      {children}
+      {hint ? <span id={`${id}-hint`} className="text-sm text-neutral-600 dark:text-neutral-400">{hint}</span> : null}
+    </div>
+  );
+}
+
 export function Select({
   label,
   hint,
   children,
+  id,
   ...props
 }: SelectHTMLAttributes<HTMLSelectElement> & { label: string; hint?: string; children: ReactNode }) {
+  const fieldId = id ?? `f-${props.name}`;
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-sm font-medium">{label}</span>
-      <select className={control} {...props}>
+    <Labelled id={fieldId} label={label} hint={hint}>
+      <select id={fieldId} aria-describedby={hint ? `${fieldId}-hint` : undefined} className={control} {...props}>
         {children}
       </select>
-      {hint ? <span className="text-sm text-neutral-600 dark:text-neutral-400">{hint}</span> : null}
-    </label>
+    </Labelled>
   );
 }
 
 export function TextArea({
   label,
   hint,
+  id,
   ...props
 }: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; hint?: string }) {
+  const fieldId = id ?? `f-${props.name}`;
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-sm font-medium">{label}</span>
-      <textarea className={`${control} py-2`} rows={3} {...props} />
-      {hint ? <span className="text-sm text-neutral-600 dark:text-neutral-400">{hint}</span> : null}
-    </label>
+    <Labelled id={fieldId} label={label} hint={hint}>
+      <textarea
+        id={fieldId}
+        aria-describedby={hint ? `${fieldId}-hint` : undefined}
+        className={`${control} py-2`}
+        rows={3}
+        {...props}
+      />
+    </Labelled>
   );
 }
 

@@ -32,4 +32,12 @@ describe("filingSummary", () => {
     const late = filingSummary({ block: 1234, cycle: 10, finalInspectionDate: "2026-01-01", closeupCompleteDate: null, today: "2026-03-10" });
     expect(late).toMatchObject({ deadline: { deadline: "2026-03-02" }, daysLeft: -8 });
   });
+
+  it("flags a deadline that falls before the window opens", () => {
+    // Block ending 1 → window opens 2027-02-21; final inspection + 60 days = 2026-07-30.
+    const s = filingSummary({ block: 11, cycle: 10, finalInspectionDate: "2026-05-31", closeupCompleteDate: null, today: "2026-06-01" });
+    expect(s).toMatchObject({ deadlineBeforeWindow: true, deadline: { deadline: "2026-07-30" } });
+    const fine = filingSummary({ block: 14, cycle: 10, finalInspectionDate: "2026-05-31", closeupCompleteDate: null, today: "2026-06-01" });
+    expect(fine).toMatchObject({ deadlineBeforeWindow: false });
+  });
 });

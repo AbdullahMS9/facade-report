@@ -1,13 +1,62 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { StatusBadge } from "@/components/Badges";
 import { BackLink, PageShell } from "@/components/ui";
+import { filingSummary } from "@/lib/rules";
 import { BOROUGH_LABEL } from "@/lib/schemas/building";
 import { REPORT_TYPE_LABEL } from "@/lib/schemas/project";
+import { formatDate, todayInNewYork } from "@/lib/today";
+import { FilingPanel } from "./FilingPanel";
 import { loadProject } from "./load";
+import { StatusForm } from "./StatusForm";
+
+function Card({ title, editHref, children }: { title: string; editHref?: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        {editHref ? (
+          <Link
+            href={editHref}
+            aria-label={`Edit ${title.toLowerCase()}`}
+            className="inline-flex min-h-12 items-center px-2 text-sm font-medium underline"
+          >
+            Edit
+          </Link>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Facts({ rows }: { rows: [string, ReactNode][] }) {
+  return (
+    <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+      {rows.map(([label, value]) => (
+        <div key={label} className="contents">
+          <dt className="text-neutral-600 dark:text-neutral-400">{label}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+const yesNo = (v: boolean | null) => (v === null ? "Not answered" : v ? "Yes" : "No");
+const date = (v: string | null) => (v ? formatDate(v) : "—");
 
 export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
   const { id } = await props.params;
-  const { project, building } = await loadProject(id);
+  const { project, building, membership } = await loadProject(id);
+  const summary = filingSummary({
+    block: building.block,
+    cycle: project.cycle,
+    finalInspectionDate: project.final_visual_date,
+    closeupCompleteDate: project.closeup_complete_date,
+    today: todayInNewYork(),
+  });
+  const qewi = project.inspectors;
 
   return (
     <PageShell title={building.address}>
@@ -21,28 +70,39 @@ export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
         <StatusBadge status={project.status} />
       </div>
 
-      <section className="flex flex-col gap-2 rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Building</h2>
-          <Link href={`/projects/${project.id}/building`} className="min-h-12 content-center px-2 text-sm font-medium underline">
-            Edit
-          </Link>
-        </div>
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <dt className="text-neutral-600 dark:text-neutral-400">Block / lot</dt>
-          <dd>{building.block ?? "—"} / {building.lot ?? "—"}</dd>
-          <dt className="text-neutral-600 dark:text-neutral-400">BIN</dt>
-          <dd>{building.bin ?? "—"}</dd>
-          <dt className="text-neutral-600 dark:text-neutral-400">Stories</dt>
-          <dd>{building.stories ?? "—"}</dd>
-          <dt className="text-neutral-600 dark:text-neutral-400">Cavity wall</dt>
-          <dd>{building.is_cavity_wall === null ? "Not answered" : building.is_cavity_wall ? "Yes" : "No"}</dd>
-          <dt className="text-neutral-600 dark:text-neutral-400">Materials</dt>
-          <dd>{building.materials.length ? building.materials.join(", ") : "—"}</dd>
-          <dt className="text-neutral-600 dark:text-neutral-400">Owner</dt>
-          <dd>{building.owner_name ?? "—"}</dd>
-        </dl>
-      </section>
+      <FilingPanel summary={summary} projectId={project.id} filed={project.status === "filed"} />
+
+      <Card title="Project" editHref={`/projects/${project.id}/details`}>
+        <Facts
+          rows={[
+            ["QEWI", qewi ? `${qewi.name} (${qewi.license_type} ${qewi.license_number})` : "Not chosen yet"],
+            ["Exam", `${date(project.exam_start)} – ${date(project.exam_end)}`],
+            ["Close-ups completed", date(project.closeup_complete_date)],
+            ["Final inspection", date(project.final_visual_date)],
+            ["UNSAFE notice sent", date(project.unsafe_notified_on)],
+          ]}
+        />
+      </Card>
+
+      <Card title="Building" editHref={`/projects/${project.id}/building`}>
+        <Facts
+          rows={[
+            ["Block / lot", `${building.block ?? "—"} / ${building.lot ?? "—"}`],
+            ["BIN", building.bin ?? "—"],
+            ["Stories", building.stories ?? "—"],
+            ["Cavity wall", yesNo(building.is_cavity_wall)],
+            ["Landmark", yesNo(building.is_landmark)],
+            ["Materials", building.materials.length ? building.materials.join(", ") : "—"],
+            ["Owner", building.owner_name ?? "—"],
+          ]}
+        />
+      </Card>
+
+      {membership.role === "qewi" ? (
+        <Card title="Status">
+          <StatusForm projectId={project.id} status={project.status} />
+        </Card>
+      ) : null}
     </PageShell>
   );
 }

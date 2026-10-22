@@ -1,5 +1,5 @@
 import { FISP_RULES } from "./config";
-import { daysBetween } from "./dates";
+import { compareDates, daysBetween } from "./dates";
 import { computeFilingDeadline, type DeadlineLimit, type FilingDeadline } from "./deadline";
 import { filingWindowStatus, getFilingWindow, type FilingWindow, type FilingWindowStatus } from "./filingWindow";
 import type { IsoDate } from "./types";
@@ -20,6 +20,9 @@ export type FilingSummary =
       windowStatus: FilingWindowStatus; // as of today
       deadline: FilingDeadline;
       daysLeft: number; // negative once the deadline has passed
+      // The deadline falls before the window opens, so no filing date meets
+      // every limit in §3.4 (e.g. the final inspection was done too early).
+      deadlineBeforeWindow: boolean;
     };
 
 // Filing window, deadline and days left for one project (CLAUDE.md §3.1, §3.4).
@@ -41,6 +44,7 @@ export function filingSummary(input: FilingSummaryInput, rules = FISP_RULES): Fi
     windowStatus: filingWindowStatus(input.today, window, rules),
     deadline,
     daysLeft: daysBetween(input.today, deadline.deadline),
+    deadlineBeforeWindow: compareDates(deadline.deadline, window.start) < 0,
   };
 }
 

@@ -34,17 +34,21 @@ export function Button({
 export function Field({
   label,
   hint,
+  id,
   ...props
 }: InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string }) {
+  const fieldId = id ?? `f-${props.name}`;
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-sm font-medium">{label}</span>
+    <div className="flex flex-col gap-1">
+      <label htmlFor={fieldId} className="text-sm font-medium">{label}</label>
       <input
+        id={fieldId}
+        aria-describedby={hint ? `${fieldId}-hint` : undefined}
         className="min-h-12 rounded-lg border border-neutral-300 bg-white px-3 text-base text-neutral-900 dark:border-neutral-600 dark:bg-neutral-900 dark:text-neutral-100"
         {...props}
       />
-      {hint ? <span className="text-sm text-neutral-600 dark:text-neutral-400">{hint}</span> : null}
-    </label>
+      {hint ? <span id={`${fieldId}-hint`} className="text-sm text-neutral-600 dark:text-neutral-400">{hint}</span> : null}
+    </div>
   );
 }
 
