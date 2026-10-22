@@ -347,7 +347,7 @@ npm run typecheck   # next typegen + tsc --noEmit
 npm run lint        # eslint
 npm test            # unit tests (no database needed)
 npm run test:db     # RLS + auth tests against local Supabase
-npm run test:e2e    # Playwright flow at 390px (starts dev server; needs db:start)
+npm run test:e2e    # Playwright flows at 390px (starts dev server + fake Open Data; needs db:start)
 npm run db:start    # start local Supabase in Docker (Studio :54323, Mailpit :54324)
 npm run db:stop
 npm run db:reset    # re-apply all migrations from scratch
@@ -378,6 +378,14 @@ containers without the custom email templates, and sign-in emails fall back to d
 - Pages call `src/lib/rules/` helpers (`filingSummary`, `elevationProgress`, `probesApply`);
   no rule logic in components. "Today" is New York time (`src/lib/today.ts`).
 - Back links use `BackLink`; deletes use `ConfirmDelete` and are QEWI-only.
+
+### Prior filings (built in step 5)
+- `src/lib/opendata/facades.ts` (pure client + cache policy) and `history.ts` (server, reads
+  and writes `building_filings_cache`). Cache is fresh for 24 h; after a failure it waits
+  5 min before retrying. The overview panel streams in via `<Suspense>`.
+- `NYC_OPEN_DATA_URL` overrides the API URL; Playwright points it at
+  `tests/e2e/fake-opendata.mjs`. If you run `npm run dev` yourself before `test:e2e`, start
+  it with that variable or the prior-filings test will hit the real API.
 
 ---
 
@@ -440,4 +448,6 @@ containers without the custom email templates, and sign-in emails fall back to d
 | 2026-10-21 | Members add/edit project data; only the QEWI deletes or changes project status | Field staff do data entry; status and deletes are the QEWI's call |
 | 2026-10-21 | Building materials as a list + free-text notes (no per-material age) | Simple to enter on a phone; revisit if the report needs a table |
 | 2026-10-21 | Playwright added in step 4 (1.63.0, Chromium only) | Needed to check field screens at 390px end to end |
+| 2026-10-21 | Cache Open Data per building in `building_filings_cache` (RLS), not Next's fetch cache | Survives deploys, shows "last updated", usable offline later |
+| 2026-10-21 | Prior-cycle items entered by hand in step 5 | Open Data has statuses only, no condition-level data |
 | 2026-10-21 | Accept `braces` audit warning (eslint-config-next dev dependency) | Dev-only lint tooling; only “fix” is downgrading to Next 14 lint config |
