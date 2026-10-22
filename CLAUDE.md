@@ -359,6 +359,8 @@ npm run db:stop
 npm run db:reset    # re-apply all migrations from scratch
 npm run db:types    # regenerate src/types/database.ts after a migration
 npm run build       # production build
+npm run db:seed-demo  # fictional demo project for DEMO_EMAIL (.env.seed.local), local db
+npm run test:smoke  # read-only checks against SMOKE_URL (a deployed site)
 ```
 Node >= 20.9 with npm >= 10.9 (dev machine: Node 24 via nvm). npm 10.8.x crashes on
 install (`reading 'edgesOut'`). Local sign-in emails land in Mailpit, not real inboxes.
@@ -406,6 +408,37 @@ containers without the custom email templates, and sign-in emails fall back to d
 - The probe check stays a blocker; a recorded probe waiver (§3.3 exceptions) clears it.
 - Fieldsets and selects use `min-w-0`/`w-full`: a long `<option>` can otherwise widen a
   fieldset past the phone screen and break taps.
+
+### Deploy (step 10)
+Hosting: Vercel (Hobby, region `iad1`) + Supabase (free, East US / N. Virginia).
+Secrets live only in Vercel env vars and ignored local files (`.env*`).
+
+1. **Supabase project**: create in the dashboard. Then `npx supabase login`,
+   `npx supabase link --project-ref <ref>`, `npx supabase db push` (applies
+   `supabase/migrations/`, including the private `photos` bucket).
+2. **Supabase auth settings** (dashboard → Authentication):
+   - Site URL = the Vercel URL; add it to Redirect URLs.
+   - Email: "Confirm email" ON; OTP length 6.
+   - Email templates: paste `supabase/templates/sign_in_code.html` into "Confirm signup"
+     and "Magic Link" (subject "Your Facade Report sign-in code"), and
+     `supabase/templates/invite.html` into "Invite user".
+   - Built-in email only reaches members of the Supabase team, a few per hour. Add a
+     sending service (custom SMTP) before inviting real users. (Needs a domain; ask first.)
+3. **Vercel**: import the GitHub repo. Env vars: `NEXT_PUBLIC_SUPABASE_URL`,
+   `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only),
+   `NEXT_PUBLIC_SITE_URL` (the Vercel URL), optional `NYC_OPEN_DATA_APP_TOKEN`.
+   Pushes to `main` deploy automatically.
+4. **Demo data**: put the hosted URL and service-role key in an ignored file (e.g.
+   `.env.hosted.local`) and `DEMO_EMAIL` in `.env.seed.local`, then
+   `node --env-file=.env.hosted.local --env-file=.env.seed.local scripts/seed-demo.mjs`.
+   Reseed after Feb 21, 2027: the demo's block (…4) window closes then.
+5. **Smoke test**: `SMOKE_URL=https://<app>.vercel.app npm run test:smoke` (read-only).
+
+Pre-deploy checks already in the repo: `tests/db/rls-coverage.test.ts` (RLS on every
+table, no anon grants, private bucket); server secrets in `src/lib/serverEnv.ts`
+(`server-only`, never bundled for the browser); security headers in `next.config.ts`.
+Push only `main` (never `--tags`/`--mirror`): a local backup tag from the history
+scrub must stay local.
 
 ### Report export (built in step 9)
 - `GET /projects/[id]/report` builds the `.docx` on the server as the signed-in user.
@@ -530,4 +563,7 @@ containers without the custom email templates, and sign-in emails fall back to d
 | 2026-10-22 | Report narrative sections are placeholders; no in-app text editor yet | Firms edit the Word file; template question still open |
 | 2026-10-22 | Report uses 2000 px display copies, two photos per page | ~20 MB for 50 photos; no server image library needed |
 | 2026-10-22 | `docx` pinned at 9.8.1 | Newer releases were under two weeks old |
+| 2026-10-22 | Deploy: Vercel (Git integration) + Supabase free tier, East US | Free, close together; pushes to main deploy |
+| 2026-10-22 | Start with Supabase built-in email; custom SMTP before real users | Built-in email only reaches the Supabase team; SMTP needs a domain |
+| 2026-10-22 | Removed two real Open Data values from history before the first push | §8: no real data in a public repo |
 | 2026-10-21 | Accept `braces` audit warning (eslint-config-next dev dependency) | Dev-only lint tooling; only “fix” is downgrading to Next 14 lint config |
