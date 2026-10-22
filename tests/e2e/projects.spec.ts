@@ -105,4 +105,40 @@ test("sign in, set up a firm, create a project and edit the building", async ({ 
   await expect(page.getByText("Status updated.")).toBeVisible();
   await expect(page.getByText("Ready to file").first()).toBeVisible();
   await shot(page, "08-overview-full");
+
+  // Elevations: a 75 ft street elevation needs 2 drops.
+  await page.getByRole("link", { name: "Add elevation" }).click();
+  await page.getByLabel("Name", { exact: true }).fill("North (Example Street)");
+  await page.getByLabel("Faces a street?").selectOption("yes");
+  await page.getByLabel("Frontage (ft)").fill("75");
+  await page.getByRole("button", { name: "Add elevation" }).click();
+  await expect(page.getByRole("heading", { name: "North (Example Street)" })).toBeVisible();
+  await expect(page.getByText("0 of 2 required drops recorded (2 more needed).")).toBeVisible();
+
+  // Record a drop.
+  await page.getByLabel("Location", { exact: true }).fill("Bay 1, west of entrance");
+  await page.getByLabel("Date", { exact: true }).fill("2026-09-21");
+  await page.getByLabel("Method").selectOption("scaffold");
+  await page.getByRole("button", { name: "Add drop" }).click();
+  await expect(page.getByText("1 of 2 required drops recorded (1 more needed).")).toBeVisible();
+  await expect(page.getByText("Drop 1: Bay 1, west of entrance")).toBeVisible();
+  // Cavity wall = yes, so each drop asks for a probe.
+  await expect(page.getByText("No probe yet.", { exact: false })).toBeVisible();
+
+  // Add a probe, then delete it (QEWI only, with confirmation).
+  await page.getByText("Add probe", { exact: true }).first().click();
+  await page.getByLabel("Probe location").fill("Floor 4, left pier");
+  await page.getByLabel("Tie type").fill("Corrugated metal");
+  await page.getByRole("button", { name: "Add probe" }).click();
+  await expect(page.getByText("Tie type: Corrugated metal")).toBeVisible();
+  await shot(page, "09-elevation");
+  await page.getByText("Delete probe").click();
+  await page.getByRole("button", { name: "Yes, delete" }).first().click();
+  await expect(page.getByText("Tie type: Corrugated metal")).toHaveCount(0);
+
+  // Overview shows the elevation's progress and the building minimum.
+  await page.getByRole("link", { name: "← 123 Example Street" }).click();
+  await expect(page.getByText("1 of 2 drops · 0 probes")).toBeVisible();
+  await expect(page.getByText("Building: 1 drop recorded, at least 2 required.")).toBeVisible();
+  await shot(page, "10-overview-elevations");
 });

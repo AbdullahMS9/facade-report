@@ -35,3 +35,14 @@ export function listElevations(db: Db, projectId: string) {
     .order("sort_order")
     .order("created_at");
 }
+
+export function getElevation(db: Db, projectId: string, elevationId: string) {
+  return db
+    .from("elevations")
+    .select("*, closeups(*, probes(*))")
+    .eq("project_id", projectId)
+    .eq("id", elevationId)
+    .order("inspected_on", { referencedTable: "closeups" })
+    .order("probed_on", { referencedTable: "closeups.probes" })
+    .maybeSingle();
+}

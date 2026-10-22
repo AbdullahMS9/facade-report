@@ -2,10 +2,12 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { StatusBadge } from "@/components/Badges";
 import { BackLink, PageShell } from "@/components/ui";
-import { filingSummary } from "@/lib/rules";
+import { listElevations } from "@/lib/db/queries";
+import { filingSummary, probesApply } from "@/lib/rules";
 import { BOROUGH_LABEL } from "@/lib/schemas/building";
 import { REPORT_TYPE_LABEL } from "@/lib/schemas/project";
 import { formatDate, todayInNewYork } from "@/lib/today";
+import { ElevationsCard } from "./ElevationsCard";
 import { FilingPanel } from "./FilingPanel";
 import { loadProject } from "./load";
 import { StatusForm } from "./StatusForm";
@@ -48,7 +50,8 @@ const date = (v: string | null) => (v ? formatDate(v) : "—");
 
 export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
   const { id } = await props.params;
-  const { project, building, membership } = await loadProject(id);
+  const { supabase, project, building, membership } = await loadProject(id);
+  const { data: elevations } = await listElevations(supabase, project.id);
   const summary = filingSummary({
     block: building.block,
     cycle: project.cycle,
@@ -71,6 +74,12 @@ export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
       </div>
 
       <FilingPanel summary={summary} projectId={project.id} filed={project.status === "filed"} />
+
+      <ElevationsCard
+        projectId={project.id}
+        elevations={elevations ?? []}
+        showProbes={probesApply(building.is_cavity_wall, project.cycle)}
+      />
 
       <Card title="Project" editHref={`/projects/${project.id}/details`}>
         <Facts
