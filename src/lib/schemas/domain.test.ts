@@ -99,3 +99,13 @@ describe("elevation, close-up and inspector schemas", () => {
     });
   });
 });
+
+describe("priorItemSchema", () => {
+  it("reads the repaired answer", async () => {
+    const { priorItemSchema } = await import("./priorItem");
+    expect(priorItemSchema.parse({ description: "Cracked lintel", repaired: "" }).repaired).toBeNull();
+    expect(priorItemSchema.parse({ description: "Cracked lintel", repaired: "yes" }).repaired).toBe(true);
+    expect(priorItemSchema.parse({ description: "Cracked lintel", repaired: "no" }).repaired).toBe(false);
+    expect(priorItemSchema.safeParse({ description: "", repaired: "no" }).success).toBe(false);
+  });
+});

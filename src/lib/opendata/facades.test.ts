@@ -5,7 +5,9 @@ import {
   latestPriorCycle,
   lookupFor,
   lookupKey,
+  needsRefresh,
   OpenDataError,
+  parseCachedFilings,
   parseRows,
 } from "./facades";
 
@@ -147,5 +149,36 @@ describe("fetchPriorFilings", () => {
     await expect(fetchPriorFilings(lookup, { fetchImpl: slow as unknown as typeof fetch, timeoutMs: 20 })).rejects.toThrow(
       /Couldn't reach/,
     );
+  });
+});
+
+describe("needsRefresh", () => {
+  const now = new Date("2026-10-21T15:00:00Z");
+  const fresh = { lookupKey: "bin:1012345", fetchedAt: "2026-10-21T10:00:00Z", lastAttemptAt: "2026-10-21T10:00:00Z", lastError: null };
+
+  it("refreshes with no cache, a changed lookup, or when forced", () => {
+    expect(needsRefresh(null, "bin:1012345", now)).toBe(true);
+    expect(needsRefresh(fresh, "bin:1099999", now)).toBe(true);
+    expect(needsRefresh(fresh, "bin:1012345", now, true)).toBe(true);
+  });
+
+  it("keeps data younger than 24 hours", () => {
+    expect(needsRefresh(fresh, "bin:1012345", now)).toBe(false);
+    expect(needsRefresh({ ...fresh, fetchedAt: "2026-10-20T14:59:00Z" }, "bin:1012345", now)).toBe(true);
+  });
+
+  it("waits 5 minutes after a failed attempt", () => {
+    const failed = { ...fresh, fetchedAt: null, lastAttemptAt: "2026-10-21T14:58:00Z", lastError: "timeout" };
+    expect(needsRefresh(failed, "bin:1012345", now)).toBe(false);
+    expect(needsRefresh({ ...failed, lastAttemptAt: "2026-10-21T14:50:00Z" }, "bin:1012345", now)).toBe(true);
+  });
+});
+
+describe("parseCachedFilings", () => {
+  it("round-trips parsed filings and drops bad data", () => {
+    const filings = parseRows(ROWS);
+    expect(parseCachedFilings(JSON.parse(JSON.stringify(filings)))).toEqual(filings);
+    expect(parseCachedFilings([{ cycle: "9" }])).toEqual([]);
+    expect(parseCachedFilings(null)).toEqual([]);
   });
 });

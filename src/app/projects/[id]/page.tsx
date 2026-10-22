@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { StatusBadge } from "@/components/Badges";
 import { BackLink, PageShell } from "@/components/ui";
 import { listElevations } from "@/lib/db/queries";
@@ -9,6 +9,8 @@ import { REPORT_TYPE_LABEL } from "@/lib/schemas/project";
 import { formatDate, todayInNewYork } from "@/lib/today";
 import { ElevationsCard } from "./ElevationsCard";
 import { FilingPanel } from "./FilingPanel";
+import { PriorFilingsPanel, PriorFilingsSkeleton } from "./PriorFilingsPanel";
+import { PriorItemsCard } from "./PriorItemsCard";
 import { loadProject } from "./load";
 import { StatusForm } from "./StatusForm";
 
@@ -52,6 +54,7 @@ export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
   const { id } = await props.params;
   const { supabase, project, building, membership } = await loadProject(id);
   const { data: elevations } = await listElevations(supabase, project.id);
+  const { data: priorItems } = await supabase.from("prior_items").select("repaired").eq("project_id", project.id);
   const summary = filingSummary({
     block: building.block,
     cycle: project.cycle,
@@ -81,11 +84,17 @@ export default async function ProjectPage(props: PageProps<"/projects/[id]">) {
         showProbes={probesApply(building.is_cavity_wall, project.cycle)}
       />
 
+      <Suspense fallback={<PriorFilingsSkeleton />}>
+        <PriorFilingsPanel db={supabase} building={building} projectId={project.id} cycle={project.cycle} />
+      </Suspense>
+
+      <PriorItemsCard projectId={project.id} items={priorItems ?? []} />
+
       <Card title="Project" editHref={`/projects/${project.id}/details`}>
         <Facts
           rows={[
             ["QEWI", qewi ? `${qewi.name} (${qewi.license_type} ${qewi.license_number})` : "Not chosen yet"],
-            ["Exam", `${date(project.exam_start)} – ${date(project.exam_end)}`],
+            ["Exam", project.exam_start || project.exam_end ? `${date(project.exam_start)} – ${date(project.exam_end)}` : "—"],
             ["Close-ups completed", date(project.closeup_complete_date)],
             ["Final inspection", date(project.final_visual_date)],
             ["UNSAFE notice sent", date(project.unsafe_notified_on)],

@@ -187,3 +187,46 @@ export function latestPriorCycle(filings: PriorFiling[], currentCycle: number): 
     filingDate: latest.filingDate,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Cache policy
+// ---------------------------------------------------------------------------
+
+export const CACHE_FRESH_MS = 24 * 60 * 60 * 1000; // dataset updates on weekdays
+export const RETRY_AFTER_ERROR_MS = 5 * 60 * 1000; // don't hammer the API after a failure
+
+export interface CacheState {
+  lookupKey: string;
+  fetchedAt: string | null;
+  lastAttemptAt: string | null;
+  lastError: string | null;
+}
+
+export function needsRefresh(cache: CacheState | null, key: string, now: Date, force = false): boolean {
+  if (force || !cache || cache.lookupKey !== key) return true;
+  const age = (iso: string | null) => (iso ? now.getTime() - new Date(iso).getTime() : Infinity);
+  if (cache.lastError && age(cache.lastAttemptAt) < RETRY_AFTER_ERROR_MS) return false;
+  return age(cache.fetchedAt) >= CACHE_FRESH_MS;
+}
+
+const cachedFilingSchema = z.array(
+  z.object({
+    tr6No: z.string().nullable(),
+    cycle: z.number().int(),
+    filingType: z.string(),
+    filingStatus: z.string().nullable(),
+    currentStatus: z.string().nullable(),
+    priorStatus: z.string().nullable(),
+    filingDate: z.string().nullable(),
+    fieldInspectionDate: z.string().nullable(),
+    qewiName: z.string().nullable(),
+    qewiLicense: z.string().nullable(),
+    comments: z.string().nullable(),
+  }),
+);
+
+// Filings read back from the cache table; unreadable data counts as empty.
+export function parseCachedFilings(value: unknown): PriorFiling[] {
+  const parsed = cachedFilingSchema.safeParse(value);
+  return parsed.success ? parsed.data : [];
+}

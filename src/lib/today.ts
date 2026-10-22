@@ -17,3 +17,15 @@ export function formatDate(date: IsoDate): string {
     new Date(Date.UTC(y, m - 1, d)),
   );
 }
+
+// "Oct 21, 2026, 3:15 PM" in New York time, for timestamps like "last updated".
+export function formatDateTime(iso: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(iso));
+}
