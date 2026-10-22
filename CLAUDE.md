@@ -209,7 +209,7 @@ and download a `.docx` that follows section 3.5.
 | Images | Client-side resize/compress before upload; keep capture date |
 | Word export | `docx` npm package |
 | Validation | Zod for all inputs and API payloads |
-| Tests | Vitest for logic (pinned to 4.x + Vite 6 while on Node 20); Playwright for 2–3 critical flows later |
+| Tests | Vitest for logic (pinned to 4.x + Vite 6); Playwright (`tests/e2e/`) for critical flows at 390px |
 | Hosting | Vercel |
 
 Rules:
@@ -318,6 +318,7 @@ npm run typecheck   # next typegen + tsc --noEmit
 npm run lint        # eslint
 npm test            # unit tests (no database needed)
 npm run test:db     # RLS + auth tests against local Supabase
+npm run test:e2e    # Playwright flow at 390px (starts dev server; needs db:start)
 npm run db:start    # start local Supabase in Docker (Studio :54323, Mailpit :54324)
 npm run db:stop
 npm run db:reset    # re-apply all migrations from scratch
@@ -338,7 +339,16 @@ containers without the custom email templates, and sign-in emails fall back to d
 - Firms and memberships are only created through `create_firm` / `accept_invitation`.
 - The service-role client (`src/lib/db/admin.ts`) is used only to send invite emails.
 - Every new table: `firm_id`, RLS enabled in the same migration, policies via
-  `private.is_firm_member` / `private.is_firm_qewi`, and cases added to `tests/db/rls.test.ts`.
+  `private.is_firm_member` / `private.is_firm_qewi`, and cases added to `tests/db/` RLS tests.
+
+### UI conventions (built in step 4)
+- Forms use `src/components/ActionForm.tsx` (keeps typed values when the server returns
+  an error) with server actions that validate with Zod schemas in `src/lib/schemas/`.
+- Labels are linked to controls by `id` (`f-<name>`), so tests and screen readers use
+  `getByLabel("…")`. Give repeated forms on one page their own `id`s.
+- Pages call `src/lib/rules/` helpers (`filingSummary`, `elevationProgress`, `probesApply`);
+  no rule logic in components. "Today" is New York time (`src/lib/today.ts`).
+- Back links use `BackLink`; deletes use `ConfirmDelete` and are QEWI-only.
 
 ---
 
@@ -381,6 +391,8 @@ containers without the custom email templates, and sign-in emails fall back to d
 - Typical report length and photo count per building.
 - Pricing: per firm per month vs per report.
 - Who sets up a firm account: the QEWI, or an office manager who shouldn't have the `qewi` role?
+- Should a project lock once it is `ready` or `filed`? (Today anyone in the firm can still edit.)
+- Probe waivers (§103-04(c)(2)(v) exceptions 1–3) are not tracked; where should the proof live?
 
 ---
 
@@ -396,4 +408,7 @@ containers without the custom email templates, and sign-in emails fall back to d
 | 2026-10-21 | Sign in with emailed 6-digit code, not magic link | Magic links open in the browser, not the installed PWA |
 | 2026-10-21 | Local Supabase in Docker for dev and DB tests; no hosted project until deploy | Free, no real emails, RLS tests run locally |
 | 2026-10-21 | Firm creator gets the `qewi` role | Someone must be able to invite; revisit if office managers set up firms |
+| 2026-10-21 | Members add/edit project data; only the QEWI deletes or changes project status | Field staff do data entry; status and deletes are the QEWI's call |
+| 2026-10-21 | Building materials as a list + free-text notes (no per-material age) | Simple to enter on a phone; revisit if the report needs a table |
+| 2026-10-21 | Playwright added in step 4 (1.63.0, Chromium only) | Needed to check field screens at 390px end to end |
 | 2026-10-21 | Accept `braces` audit warning (eslint-config-next dev dependency) | Dev-only lint tooling; only “fix” is downgrading to Next 14 lint config |
