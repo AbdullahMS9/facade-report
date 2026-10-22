@@ -307,13 +307,13 @@ isOneToOne: false
                   ]
                 },"projects": {
                   Row: {
-                    "building_id": string,"closeup_complete_date": string | null,"created_at": string,"cycle": number,"exam_end": string | null,"exam_start": string | null,"final_visual_date": string | null,"firm_id": string,"id": string,"qewi_id": string | null,"report_type": Database["public"]['Enums']["report_type"],"status": Database["public"]['Enums']["project_status"],"unsafe_notified_on": string | null,"updated_at": string
+                    "building_id": string,"closeup_complete_date": string | null,"created_at": string,"cycle": number,"exam_end": string | null,"exam_start": string | null,"final_visual_date": string | null,"firm_id": string,"id": string,"probe_waiver": Database["public"]['Enums']["probe_waiver"] | null,"probe_waiver_note": string | null,"public_protection_note": string | null,"qewi_id": string | null,"report_type": Database["public"]['Enums']["report_type"],"status": Database["public"]['Enums']["project_status"],"unsafe_notified_on": string | null,"updated_at": string
                   }
                   Insert: {
-                    "building_id": string,"closeup_complete_date"?: string | null,"created_at"?: string,"cycle"?: number,"exam_end"?: string | null,"exam_start"?: string | null,"final_visual_date"?: string | null,"firm_id": string,"id"?: string,"qewi_id"?: string | null,"report_type"?: Database["public"]['Enums']["report_type"],"status"?: Database["public"]['Enums']["project_status"],"unsafe_notified_on"?: string | null,"updated_at"?: string
+                    "building_id": string,"closeup_complete_date"?: string | null,"created_at"?: string,"cycle"?: number,"exam_end"?: string | null,"exam_start"?: string | null,"final_visual_date"?: string | null,"firm_id": string,"id"?: string,"probe_waiver"?: Database["public"]['Enums']["probe_waiver"] | null,"probe_waiver_note"?: string | null,"public_protection_note"?: string | null,"qewi_id"?: string | null,"report_type"?: Database["public"]['Enums']["report_type"],"status"?: Database["public"]['Enums']["project_status"],"unsafe_notified_on"?: string | null,"updated_at"?: string
                   }
                   Update: {
-                    "building_id"?: string,"closeup_complete_date"?: string | null,"created_at"?: string,"cycle"?: number,"exam_end"?: string | null,"exam_start"?: string | null,"final_visual_date"?: string | null,"firm_id"?: string,"id"?: string,"qewi_id"?: string | null,"report_type"?: Database["public"]['Enums']["report_type"],"status"?: Database["public"]['Enums']["project_status"],"unsafe_notified_on"?: string | null,"updated_at"?: string
+                    "building_id"?: string,"closeup_complete_date"?: string | null,"created_at"?: string,"cycle"?: number,"exam_end"?: string | null,"exam_start"?: string | null,"final_visual_date"?: string | null,"firm_id"?: string,"id"?: string,"probe_waiver"?: Database["public"]['Enums']["probe_waiver"] | null,"probe_waiver_note"?: string | null,"public_protection_note"?: string | null,"qewi_id"?: string | null,"report_type"?: Database["public"]['Enums']["report_type"],"status"?: Database["public"]['Enums']["project_status"],"unsafe_notified_on"?: string | null,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -363,7 +363,7 @@ isOneToOne: false
                            }
           }
           Enums: {
-            "borough": "manhattan"|"bronx"|"brooklyn"|"queens"|"staten_island","classification": "safe"|"swarmp"|"unsafe","closeup_method": "scaffold"|"swing_stage"|"boom_lift"|"rope","license_type": "PE"|"RA","member_role": "qewi"|"staff","photo_date_source": "exif"|"file","photo_kind": "condition"|"elevation"|"inspector"|"probe"|"typical","project_status": "draft"|"ready"|"filed","report_type": "initial"|"subsequent"|"amended"
+            "borough": "manhattan"|"bronx"|"brooklyn"|"queens"|"staten_island","classification": "safe"|"swarmp"|"unsafe","closeup_method": "scaffold"|"swing_stage"|"boom_lift"|"rope","license_type": "PE"|"RA","member_role": "qewi"|"staff","photo_date_source": "exif"|"file","photo_kind": "condition"|"elevation"|"inspector"|"probe"|"typical","probe_waiver": "tie_repair"|"new_building"|"alternate_method","project_status": "draft"|"ready"|"filed","report_type": "initial"|"subsequent"|"amended"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -483,7 +483,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "borough": ["manhattan", "bronx", "brooklyn", "queens", "staten_island"],"classification": ["safe", "swarmp", "unsafe"],"closeup_method": ["scaffold", "swing_stage", "boom_lift", "rope"],"license_type": ["PE", "RA"],"member_role": ["qewi", "staff"],"photo_date_source": ["exif", "file"],"photo_kind": ["condition", "elevation", "inspector", "probe", "typical"],"project_status": ["draft", "ready", "filed"],"report_type": ["initial", "subsequent", "amended"]
+            "borough": ["manhattan", "bronx", "brooklyn", "queens", "staten_island"],"classification": ["safe", "swarmp", "unsafe"],"closeup_method": ["scaffold", "swing_stage", "boom_lift", "rope"],"license_type": ["PE", "RA"],"member_role": ["qewi", "staff"],"photo_date_source": ["exif", "file"],"photo_kind": ["condition", "elevation", "inspector", "probe", "typical"],"probe_waiver": ["tie_repair", "new_building", "alternate_method"],"project_status": ["draft", "ready", "filed"],"report_type": ["initial", "subsequent", "amended"]
           }
         }
 } as const

@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ActionForm } from "@/components/ActionForm";
-import { Section, Select } from "@/components/fields";
+import { Section, Select, TextArea } from "@/components/fields";
 import { BackLink, Field, PageShell } from "@/components/ui";
 import { listInspectors } from "@/lib/db/queries";
-import { REPORT_TYPES, REPORT_TYPE_LABEL } from "@/lib/schemas/project";
+import { PROBE_WAIVERS, PROBE_WAIVER_LABEL, REPORT_TYPES, REPORT_TYPE_LABEL } from "@/lib/schemas/project";
 import { updateProjectDetails } from "../actions";
 import { loadProject } from "../load";
 
@@ -66,6 +66,28 @@ export default async function ProjectDetailsPage(props: PageProps<"/projects/[id
             defaultValue={d(project.unsafe_notified_on)}
             hint="Only if there are UNSAFE conditions. The QEWI must notify DOB and the owner immediately."
           />
+          <TextArea
+            label="Public protection"
+            name="public_protection_note"
+            maxLength={1000}
+            defaultValue={d(project.public_protection_note)}
+            hint="For example: Sidewalk shed installed along Example Street on Oct 3."
+          />
+        </Section>
+
+        <Section title="Cavity wall probes">
+          <Select
+            label="Probe waiver"
+            name="probe_waiver"
+            defaultValue={project.probe_waiver ?? ""}
+            hint="Only if one of the rule's exceptions applies. Keep the proof with the report."
+          >
+            <option value="">No waiver: probes required where they apply</option>
+            {PROBE_WAIVERS.map((w) => (
+              <option key={w} value={w}>{PROBE_WAIVER_LABEL[w]}</option>
+            ))}
+          </Select>
+          <TextArea label="Waiver details" name="probe_waiver_note" maxLength={2000} defaultValue={d(project.probe_waiver_note)} />
         </Section>
       </ActionForm>
     </PageShell>
