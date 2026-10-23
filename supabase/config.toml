@@ -438,8 +438,8 @@ enabled = true
 project_id = "jegzyjzvdzqhtodnfrrv"
 
 [remotes.production.auth]
-site_url = "http://localhost:3000"
-additional_redirect_urls = []
+site_url = "https://facade-report.vercel.app"
+additional_redirect_urls = ["https://facade-report.vercel.app/**"]
 
 [remotes.production.auth.email]
 max_frequency = "1m0s"

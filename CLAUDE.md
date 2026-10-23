@@ -415,7 +415,14 @@ containers without the custom email templates, and sign-in emails fall back to d
   fieldset past the phone screen and break taps.
 
 ### Deploy (step 10)
+Live at **https://facade-report.vercel.app** (Supabase project `jegzyjzvdzqhtodnfrrv`).
 Hosting: Vercel (Hobby, region `iad1`) + Supabase (free, East US / N. Virginia).
+- Vercel Hobby is for non-commercial use only: move to Pro (or another host) before real
+  firms use the app or it's sold.
+- Per-deployment URLs (`facade-report-<hash>-….vercel.app`) sit behind Vercel's login
+  ("deployment protection"); the production domain above is the public one.
+- Env vars are set for Production only; preview deployments have none (and their URLs
+  aren't on Supabase's redirect list).
 Secrets live only in Vercel env vars and ignored local files (`.env*`).
 
 1. **Supabase project**: create in the dashboard. Then `npx supabase login`,
