@@ -434,6 +434,11 @@ Secrets live only in Vercel env vars and ignored local files (`.env*`).
    Reseed after Feb 21, 2027: the demo's block (…4) window closes then.
 5. **Smoke test**: `SMOKE_URL=https://<app>.vercel.app npm run test:smoke` (read-only).
 
+`npx supabase db advisors --linked --type security` should list only the intended
+SECURITY DEFINER functions: `invitation_preview` (anon, token-gated), `create_firm`,
+`accept_invitation`, `firm_members`. Hosted "automatic RLS" adds `rls_auto_enable()`;
+migration `20261023000100` removes its API access.
+
 Pre-deploy checks already in the repo: `tests/db/rls-coverage.test.ts` (RLS on every
 table, no anon grants, private bucket); server secrets in `src/lib/serverEnv.ts`
 (`server-only`, never bundled for the browser); security headers in `next.config.ts`.
