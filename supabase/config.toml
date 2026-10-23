@@ -161,7 +161,8 @@ site_url = "http://127.0.0.1:3000"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+# Sign-in links return to /auth/callback: dev server (3000) and Playwright (3100).
+additional_redirect_urls = ["http://localhost:3000/**", "http://127.0.0.1:3000/**", "http://localhost:3100/**"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -426,3 +427,30 @@ enabled = true
 # formatted with uppercase keywords, indent 2, max width 180, trailing commas,
 # and column/key alignment. Set to "null" to emit raw, unformatted SQL.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":180,\"commaStyle\":\"trailing\"}"
+
+# ---------------------------------------------------------------------------
+# Hosted project overrides (used by `supabase config push`). Everything above
+# is for local development; these keep the hosted project's own values where
+# local ones would be wrong (localhost URLs, 1 s email spacing, pool sizes).
+# Update site_url / additional_redirect_urls when the Vercel URL changes.
+# ---------------------------------------------------------------------------
+[remotes.production]
+project_id = "jegzyjzvdzqhtodnfrrv"
+
+[remotes.production.auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = []
+
+[remotes.production.auth.email]
+max_frequency = "1m0s"
+
+[remotes.production.auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[remotes.production.db.pooler]
+default_pool_size = 15
+max_client_conn = 200
+
+[remotes.production.storage.vector]
+enabled = false

@@ -4,7 +4,7 @@ import { publicEnv } from "@/lib/env";
 import type { Database } from "@/types/database";
 
 // Pages a signed-out visitor may open.
-const PUBLIC_PATHS = [/^\/login$/, /^\/invite\/[^/]+$/];
+const PUBLIC_PATHS = [/^\/login$/, /^\/invite\/[^/]+$/, /^\/auth\/callback$/];
 
 // Refreshes the Supabase session cookie on every request and sends signed-out
 // visitors to /login. Called from src/proxy.ts.

@@ -369,7 +369,12 @@ After a Mac restart run `npm run db:stop && npm run db:start`: Docker revives th
 containers without the custom email templates, and sign-in emails fall back to defaults.
 
 ### Auth and tenancy (built in step 3)
-- Sign-in is email + 6-digit code (no magic links: links open outside the installed PWA).
+- Sign-in is email + code (6 locally; the app accepts 6–10 digits). Codes are the main path:
+  links open outside the installed PWA. **Stopgap:** hosted Supabase on the free plan with
+  its built-in email can't use our templates, so hosted emails carry only a link. Links
+  land on `/auth/callback` (PKCE: open in the same browser that asked). Once a custom SMTP
+  sender is set up, push our templates (`supabase config push`) so emails carry the code
+  too. Local templates include both code and link, so tests cover both.
 - `supabase/config.toml` keeps `enable_confirmations = true`; `accept_invitation` relies on
   confirmed emails. **Turn "Confirm email" on in the hosted project too**, and set the same
   email templates (`supabase/templates/`).
@@ -416,14 +421,15 @@ Secrets live only in Vercel env vars and ignored local files (`.env*`).
 1. **Supabase project**: create in the dashboard. Then `npx supabase login`,
    `npx supabase link --project-ref <ref>`, `npx supabase db push` (applies
    `supabase/migrations/`, including the private `photos` bucket).
-2. **Supabase auth settings** (dashboard → Authentication):
-   - Site URL = the Vercel URL; add it to Redirect URLs.
-   - Email: "Confirm email" ON; OTP length 6.
-   - Email templates: paste `supabase/templates/sign_in_code.html` into "Confirm signup"
-     and "Magic Link" (subject "Your Facade Report sign-in code"), and
-     `supabase/templates/invite.html` into "Invite user".
-   - Built-in email only reaches members of the Supabase team, a few per hour. Add a
-     sending service (custom SMTP) before inviting real users. (Needs a domain; ask first.)
+2. **Supabase auth settings** (dashboard → Authentication → URL Configuration):
+   - Site URL = the Vercel URL; Redirect URLs: `https://<app>.vercel.app/**`.
+   - "Confirm email" is ON by default on hosted; keep it on.
+   - Email templates can't be changed on the free plan with the built-in sender
+     (`config push` returns 400). Until a custom SMTP sender is set up: emails carry a
+     link only, invite emails don't point at `/invite/<token>` (QEWIs copy the link from
+     the Team page), and the built-in sender only reaches the Supabase team, a few emails
+     per hour. With SMTP: `npx supabase config push` (the `[remotes.production]` block in
+     `config.toml` keeps hosted-only values) sets 6-digit codes and our templates.
 3. **Vercel**: import the GitHub repo. Env vars: `NEXT_PUBLIC_SUPABASE_URL`,
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server only),
    `NEXT_PUBLIC_SITE_URL` (the Vercel URL), optional `NYC_OPEN_DATA_APP_TOKEN`.
@@ -571,4 +577,5 @@ scrub must stay local.
 | 2026-10-22 | Deploy: Vercel (Git integration) + Supabase free tier, East US | Free, close together; pushes to main deploy |
 | 2026-10-22 | Start with Supabase built-in email; custom SMTP before real users | Built-in email only reaches the Supabase team; SMTP needs a domain |
 | 2026-10-22 | Removed two real Open Data values from history before the first push | §8: no real data in a public repo |
+| 2026-10-23 | Hosted sign-in by emailed link until custom SMTP | Free-plan built-in email can't use our code templates |
 | 2026-10-21 | Accept `braces` audit warning (eslint-config-next dev dependency) | Dev-only lint tooling; only “fix” is downgrading to Next 14 lint config |

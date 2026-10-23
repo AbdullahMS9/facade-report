@@ -23,9 +23,11 @@ describe("emailSchema / codeSchema", () => {
     expect(emailSchema.safeParse("not-an-email").success).toBe(false);
   });
 
-  it("accepts only 6 digits", () => {
+  it("accepts 6 to 10 digits", () => {
     expect(codeSchema.parse(" 123456 ")).toBe("123456");
+    expect(codeSchema.parse("12345678")).toBe("12345678");
     expect(codeSchema.safeParse("12345").success).toBe(false);
+    expect(codeSchema.safeParse("12345678901").success).toBe(false);
     expect(codeSchema.safeParse("12345a").success).toBe(false);
   });
 });

@@ -91,3 +91,19 @@ export function withExifDate(jpeg: Buffer, dateTimeOriginal: string): Buffer {
   const header = Buffer.from([0xff, 0xe1, (body.length + 2) >> 8, (body.length + 2) & 255]);
   return Buffer.concat([jpeg.subarray(0, 2), header, body, jpeg.subarray(2)]);
 }
+
+// The sign-in link from the newest sign-in email to `to`.
+export async function signInLink(to: string): Promise<string> {
+  for (let i = 0; i < 40; i++) {
+    const q = encodeURIComponent(`to:"${to}" subject:"Your Facade Report sign-in code"`);
+    const res = (await (await fetch(`${status.MAILPIT_URL}/api/v1/search?query=${q}`)).json()) as { messages: { ID: string }[] };
+    const id = res.messages[0]?.ID;
+    if (id) {
+      const msg = (await (await fetch(`${status.MAILPIT_URL}/api/v1/message/${id}`)).json()) as { HTML: string };
+      const href = /href="([^"]+)"/.exec(msg.HTML)?.[1];
+      if (href) return href.replaceAll("&amp;", "&");
+    }
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  throw new Error(`No sign-in link arrived for ${to}`);
+}

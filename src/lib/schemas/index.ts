@@ -10,7 +10,7 @@ export const emailSchema = z
 export const codeSchema = z
   .string()
   .trim()
-  .regex(/^\d{6}$/, { error: "Enter the 6-digit code from the email." });
+  .regex(/^\d{6,10}$/, { error: "Enter the code from the email (6 to 10 digits)." });
 
 export const firmNameSchema = z
   .string()

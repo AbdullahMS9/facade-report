@@ -19,7 +19,7 @@ test("sign in, set up a firm, create a project and edit the building", async ({ 
   await expect(page).toHaveURL(/\/login$/);
   await page.getByLabel("Work email").fill(email);
   await page.getByRole("button", { name: "Email me a sign-in code" }).click();
-  await expect(page.getByText(`We sent a 6-digit code to ${email}`)).toBeVisible();
+  await expect(page.getByText(`We emailed ${email}.`)).toBeVisible();
   await shot(page, "01-code");
   await page.getByLabel("Sign-in code").fill(await signInCode(email));
   await page.getByRole("button", { name: "Sign in" }).click();

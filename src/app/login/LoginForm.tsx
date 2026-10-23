@@ -20,6 +20,7 @@ export function LoginForm({ next, defaultEmail }: { next: string; defaultEmail: 
   if (!onCodeStep) {
     return (
       <form action={(fd) => { setChangingEmail(false); sendAction(fd); }} className="flex flex-col gap-4">
+        <input type="hidden" name="next" value={next} />
         <Field
           label="Work email"
           name="email"
@@ -40,7 +41,9 @@ export function LoginForm({ next, defaultEmail }: { next: string; defaultEmail: 
   const email = sendState.email;
   return (
     <form action={verifyAction} className="flex flex-col gap-4">
-      <Message tone="info">We sent a 6-digit code to {email}. It expires in 1 hour.</Message>
+      <Message tone="info">
+        We emailed {email}. Tap the sign-in link in the email, or enter the code here. It expires in 1 hour.
+      </Message>
       <input type="hidden" name="email" value={email} />
       <input type="hidden" name="next" value={next} />
       <Field
@@ -48,8 +51,8 @@ export function LoginForm({ next, defaultEmail }: { next: string; defaultEmail: 
         name="code"
         inputMode="numeric"
         autoComplete="one-time-code"
-        pattern="\d{6}"
-        maxLength={6}
+        pattern="\d{6,10}"
+        maxLength={10}
         required
         autoFocus
       />
